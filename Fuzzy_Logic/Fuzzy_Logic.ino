@@ -159,7 +159,7 @@ void setup() {
 
   // Any value of delta Temp (delta_temp_low OR delta_temp_med OR delta_temp_high)
 
-      // Delta Smoke Low
+      // Delta Temp Low
       FuzzyRuleAntecedent *if_delta_temp_low  = new FuzzyRuleAntecedent();
       if_delta_temp_low->joinSingle(D_IT_Low);
 
@@ -192,6 +192,62 @@ void setup() {
   // Temp High AND Any value of delta temp
   FuzzyRuleAntecedent *if_temp_high_and_delta_temp_any_value  = new FuzzyRuleAntecedent();
   if_temp_high_and_delta_temp_any_value->joinWithAND(if_temp_high, if_any_value_delta_temp);
+
+  // (Smoke Low || Smoke Med) && (Any value of Delta Smoke)
+  FuzzyRuleAntecedent *if_smoke_low_or_med_and_any_delta_smoke  = new FuzzyRuleAntecedent();
+  if_smoke_low_or_med_and_any_delta_smoke->joinWithAND(if_smoke_low_or_smoke_med, if_any_value_delta_smoke);
+
+  // Smoke High
+  FuzzyRuleAntecedent *if_smoke_high = new FuzzyRuleAntecedent();
+  if_smoke_high->joinSingle(IS_High);
+
+  // Smoke High && (delta Smoke Low || delta Smoke Med)
+  FuzzyRuleAntecedent *if_smoke_high_and_delta_smoke_low_or_med  = new FuzzyRuleAntecedent();
+  if_smoke_high_and_delta_smoke_low_or_med->joinWithAND(if_smoke_high, if_delta_smoke_low_or_delta_smoke_med);
+
+  // Smoke High && Delta Smoke High
+  FuzzyRuleAntecedent *if_smoke_high_and_delta_smoke_high  = new FuzzyRuleAntecedent();
+  if_smoke_high_and_delta_smoke_high->joinWithAND(if_smoke_high, if_delta_smoke_high);
+
+  // Delta Smoke Low
+  FuzzyRuleAntecedent *if_delta_smoke_low  = new FuzzyRuleAntecedent();
+  if_delta_smoke_low->joinSingle(D_IS_Low);
+
+  // Smoke Low && Delta Smoke Low
+  FuzzyRuleAntecedent *if_smoke_low_and_delta_smoke_low  = new FuzzyRuleAntecedent();
+  if_smoke_low_and_delta_smoke_low->joinWithAND(if_smoke_low, if_delta_smoke_low);
+
+  // Antecedent of rule n°1
+  
+      // Temp Low && delta Temp Low && (Smoke Low || Smoke Med) && (Any value of Delta Smoke)
+      FuzzyRuleAntecedent *if_t_l_and_dt_l_and_s_l_or_m_and_any_ds  = new FuzzyRuleAntecedent();
+      if_t_l_and_dt_l_and_s_l_or_m_and_any_ds->joinWithAND(if_temp_low_and_delta_temp_low, if_smoke_low_or_med_and_any_delta_smoke);
+
+  //
+
+  // Antecedent of rule n°2
+  
+      // Temp Low && delta Temp Low && Smoke High && (Delta Smoke Low || Delta Smoke Med)
+      FuzzyRuleAntecedent *if_t_l_and_dt_l_and_s_h_and_ds_l_or_m  = new FuzzyRuleAntecedent();
+      if_t_l_and_dt_l_and_s_h_and_ds_l_or_m->joinWithAND(if_temp_low_and_delta_temp_low, if_smoke_high_and_delta_smoke_low_or_med);
+
+  //  
+  
+  // Antecedent of rule n°3
+  
+      // Temp Low && delta Temp Low && Smoke High && Delta Smoke High
+      FuzzyRuleAntecedent *if_t_l_and_dt_l_and_s_h_and_ds_h = new FuzzyRuleAntecedent();
+      if_t_l_and_dt_l_and_s_h_and_ds_h->joinWithAND(if_temp_low_and_delta_temp_low, if_smoke_high_and_delta_smoke_high);
+
+  //
+    
+  // Antecedent of rule n°4
+  
+      // Temp Low && (delta Temp Med || delta Temp High) && Smoke Low && Delta Smoke Low
+      FuzzyRuleAntecedent *if_t_l_and_dt_m_or_h_and_s_l_and_ds_l = new FuzzyRuleAntecedent();
+      if_t_l_and_dt_m_or_h_and_s_l_and_ds_l->joinWithAND(if_temp_low_and_delta_temp_med_or_high, if_smoke_low_and_delta_smoke_low);
+
+  //
   
   /*// We might not need singletons
   // Smoke Low
@@ -202,13 +258,9 @@ void setup() {
   FuzzyRuleAntecedent *if_smoke_med  = new FuzzyRuleAntecedent();
   if_smoke_med->joinSingle(IS_Med);
 
-  // Smoke High
-  FuzzyRuleAntecedent *if_smoke_high = new FuzzyRuleAntecedent();
-  if_smoke_high->joinSingle(IS_High);
+  
 
-  // Delta Smoke Low
-  FuzzyRuleAntecedent *if_delta_smoke_low  = new FuzzyRuleAntecedent();
-  if_delta_smoke_low->joinSingle(D_IS_Low);
+  
 
   // Delta Smoke Med
   FuzzyRuleAntecedent *if_delta_smoke_med  = new FuzzyRuleAntecedent();
