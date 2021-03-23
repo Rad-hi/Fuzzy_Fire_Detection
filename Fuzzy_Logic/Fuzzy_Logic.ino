@@ -301,6 +301,10 @@ void setup() {
   FuzzyRuleAntecedent *if_any_smoke_and_delta_smoke_med_or_high  = new FuzzyRuleAntecedent();
   if_any_smoke_and_delta_smoke_med_or_high->joinWithAND(if_any_value_smoke, if_delta_smoke_med_or_delta_smoke_high);
 
+  //////////////////////////////////
+  //   Antecedents of all rules   //
+  //////////////////////////////////
+  
   // Antecedent of rule n°1
   
       // Temp Low && delta Temp Low && (Smoke Low || Smoke Med) && (Any value of Delta Smoke)
@@ -556,6 +560,144 @@ void setup() {
   if_t_h_and_dt_h_and_s_l_and_ds_m->joinWithAND(if_temp_high_and_delta_temp_high, if_smoke_low_and_delta_smoke_med);
 
   //
+
+  // Consequents of all possible antecedents
+  FuzzyRuleConsequent *then_fire_confidence_low = new FuzzyRuleConsequent();
+  then_fire_confidence_low->addOutput(FC_Low);  
+
+  FuzzyRuleConsequent *then_fire_confidence_med = new FuzzyRuleConsequent();
+  then_fire_confidence_med->addOutput(FC_Med);
+
+  FuzzyRuleConsequent *then_fire_confidence_high = new FuzzyRuleConsequent();
+  then_fire_confidence_high->addOutput(FC_High);
+
+  // Rule n°1
+  FuzzyRule *fuzzyRule1 = new FuzzyRule(1, if_t_l_and_dt_l_and_s_l_or_m_and_any_ds, then_fire_confidence_low);
+  fuzzy->addFuzzyRule(fuzzyRule1);
+
+  // Rule n°2
+  FuzzyRule *fuzzyRule2 = new FuzzyRule(2, if_t_l_and_dt_l_and_s_h_and_ds_l_or_m, then_fire_confidence_low);
+  fuzzy->addFuzzyRule(fuzzyRule2);
+
+  // Rule n°3
+  FuzzyRule *fuzzyRule3 = new FuzzyRule(3, if_t_l_and_dt_l_and_s_h_and_ds_h, then_fire_confidence_med);
+  fuzzy->addFuzzyRule(fuzzyRule3);
+
+  // Rule n°4
+  FuzzyRule *fuzzyRule4 = new FuzzyRule(4, if_t_l_and_dt_m_or_h_and_s_l_and_ds_l, then_fire_confidence_low);
+  fuzzy->addFuzzyRule(fuzzyRule4);
+
+  // Rule n°5
+  FuzzyRule *fuzzyRule5 = new FuzzyRule(5, if_t_l_and_dt_h_and_s_l_and_ds_m, then_fire_confidence_low);
+  fuzzy->addFuzzyRule(fuzzyRule5);
+
+  // Rule n°6
+  FuzzyRule *fuzzyRule6 = new FuzzyRule(6, if_t_m_and_dt_l_and_s_l_and_any_ds, then_fire_confidence_low);
+  fuzzy->addFuzzyRule(fuzzyRule6);
+
+  // Rule n°7
+  FuzzyRule *fuzzyRule7 = new FuzzyRule(7, if_t_m_and_dt_l_and_s_m_and_ds_l, then_fire_confidence_low);
+  fuzzy->addFuzzyRule(fuzzyRule7);
+
+  // Rule n°8
+  FuzzyRule *fuzzyRule8 = new FuzzyRule(8, if_t_h_and_dt_l_and_s_l_and_ds_l, then_fire_confidence_low);
+  fuzzy->addFuzzyRule(fuzzyRule8);
+
+  // Rule n°9
+  FuzzyRule *fuzzyRule9 = new FuzzyRule(9, if_t_l_and_dt_m_and_s_l_and_ds_m_or_h, then_fire_confidence_med);
+  fuzzy->addFuzzyRule(fuzzyRule9);
+
+  // Rule n°10
+  FuzzyRule *fuzzyRule10 = new FuzzyRule(10, if_t_l_and_dt_m_and_s_m_and_any_ds, then_fire_confidence_med);
+  fuzzy->addFuzzyRule(fuzzyRule10);
+
+  // Rule n°11
+  FuzzyRule *fuzzyRule11 = new FuzzyRule(11, if_t_l_and_dt_m_and_s_h_and_ds_l_or_m, then_fire_confidence_med);
+  fuzzy->addFuzzyRule(fuzzyRule11);
+
+  // Rule n°12
+  FuzzyRule *fuzzyRule12 = new FuzzyRule(12, if_t_l_and_dt_h_and_s_l_and_ds_h, then_fire_confidence_med);
+  fuzzy->addFuzzyRule(fuzzyRule12);
+
+  // Rule n°13
+  FuzzyRule *fuzzyRule13 = new FuzzyRule(13, if_t_l_and_dt_h_and_s_m_or_h_and_ds_l, then_fire_confidence_med);
+  fuzzy->addFuzzyRule(fuzzyRule13);
+
+  // Rule n°14
+  FuzzyRule *fuzzyRule14 = new FuzzyRule(14, if_t_l_and_dt_h_and_s_m_and_ds_m, then_fire_confidence_med);
+  fuzzy->addFuzzyRule(fuzzyRule14);
+
+  // Rule n°15
+  FuzzyRule *fuzzyRule15 = new FuzzyRule(15, if_t_m_and_dt_l_and_s_m_and_ds_m_or_h, then_fire_confidence_med);
+  fuzzy->addFuzzyRule(fuzzyRule15);
+
+  // Rule n°16
+  FuzzyRule *fuzzyRule16 = new FuzzyRule(16, if_t_m_and_dt_l_and_s_h_and_ds_l_or_m, then_fire_confidence_med);
+  fuzzy->addFuzzyRule(fuzzyRule16);
+
+  // Rule n°17
+  FuzzyRule *fuzzyRule17 = new FuzzyRule(17, if_t_m_and_dt_m_and_s_l_or_m_and_ds_l_or_m, then_fire_confidence_med);
+  fuzzy->addFuzzyRule(fuzzyRule17);
+
+  // Rule n°18
+  FuzzyRule *fuzzyRule18 = new FuzzyRule(18, if_t_m_and_dt_m_and_s_h_and_ds_l, then_fire_confidence_med);
+  fuzzy->addFuzzyRule(fuzzyRule18);
+
+  // Rule n°19
+  FuzzyRule *fuzzyRule19 = new FuzzyRule(19, if_t_m_and_dt_h_and_s_l_or_m_and_ds_l, then_fire_confidence_med);
+  fuzzy->addFuzzyRule(fuzzyRule19);
+
+  // Rule n°20
+  FuzzyRule *fuzzyRule20 = new FuzzyRule(20, if_t_m_and_dt_h_and_s_l_or_m_and_ds_l, then_fire_confidence_med);
+  fuzzy->addFuzzyRule(fuzzyRule20);
+
+  // Rule n°21
+  FuzzyRule *fuzzyRule21 = new FuzzyRule(21, if_t_h_and_dt_m_or_h_and_s_l_and_ds_l, then_fire_confidence_med);
+  fuzzy->addFuzzyRule(fuzzyRule21);
+
+  // Rule n°22
+  FuzzyRule *fuzzyRule22 = new FuzzyRule(22, if_t_l_and_dt_m_and_s_h_and_ds_h, then_fire_confidence_high);
+  fuzzy->addFuzzyRule(fuzzyRule22);
+
+  // Rule n°23
+  FuzzyRule *fuzzyRule23 = new FuzzyRule(23, if_t_l_and_dt_h_and_s_m_and_ds_h, then_fire_confidence_high);
+  fuzzy->addFuzzyRule(fuzzyRule23);
+
+  // Rule n°24
+  FuzzyRule *fuzzyRule24 = new FuzzyRule(24, if_t_l_and_dt_h_and_s_h_and_ds_m_or_h, then_fire_confidence_high);
+  fuzzy->addFuzzyRule(fuzzyRule24);
+
+  // Rule n°25
+  FuzzyRule *fuzzyRule25 = new FuzzyRule(25, if_t_m_and_dt_l_and_s_h_and_ds_h, then_fire_confidence_high);
+  fuzzy->addFuzzyRule(fuzzyRule25);
+
+  // Rule n°26
+  FuzzyRule *fuzzyRule26 = new FuzzyRule(26, if_t_m_and_dt_m_and_any_s_and_ds_h, then_fire_confidence_high);
+  fuzzy->addFuzzyRule(fuzzyRule26);
+
+  // Rule n°27
+  FuzzyRule *fuzzyRule27 = new FuzzyRule(27, if_t_m_and_dt_m_and_s_h_and_ds_m, then_fire_confidence_high);
+  fuzzy->addFuzzyRule(fuzzyRule27);
+
+  // Rule n°28
+  FuzzyRule *fuzzyRule28 = new FuzzyRule(28, if_t_m_and_dt_h_and_any_s_and_ds_m_or_h, then_fire_confidence_high);
+  fuzzy->addFuzzyRule(fuzzyRule28);
+
+  // Rule n°29
+  FuzzyRule *fuzzyRule29 = new FuzzyRule(29, if_t_m_and_dt_h_and_s_h_and_ds_l, then_fire_confidence_high);
+  fuzzy->addFuzzyRule(fuzzyRule29);
+
+  // Rule n°30
+  FuzzyRule *fuzzyRule30 = new FuzzyRule(30, if_t_h_and_any_dt_and_s_l_and_ds_h, then_fire_confidence_high);
+  fuzzy->addFuzzyRule(fuzzyRule30);
+
+  // Rule n°31
+  FuzzyRule *fuzzyRule31 = new FuzzyRule(31, if_t_h_and_any_dt_and_s_m_or_h_and_any_ds, then_fire_confidence_high);
+  fuzzy->addFuzzyRule(fuzzyRule31);
+
+  // Rule n°32
+  FuzzyRule *fuzzyRule32 = new FuzzyRule(32, if_t_h_and_dt_h_and_s_l_and_ds_m, then_fire_confidence_high);
+  fuzzy->addFuzzyRule(fuzzyRule32);
 }
 
 void loop() {
