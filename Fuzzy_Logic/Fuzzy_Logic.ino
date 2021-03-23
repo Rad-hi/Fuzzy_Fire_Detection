@@ -144,12 +144,6 @@ void setup() {
   // Temp High && Delta Temp Low
   FuzzyRuleAntecedent *if_temp_high_and_delta_temp_low  = new FuzzyRuleAntecedent();
   if_temp_high_and_delta_temp_low->joinWithAND(IT_High, D_IT_Low);
-
-  /*
-  // Temp High && Delta Temp Med
-  FuzzyRuleAntecedent *if_temp_high_and_delta_temp_med  = new FuzzyRuleAntecedent();
-  if_temp_high_and_delta_temp_med->joinWithAND(IT_High, D_IT_Med);
-  */
   
   // Temp High && Delta Temp High
   FuzzyRuleAntecedent *if_temp_high_and_delta_temp_high = new FuzzyRuleAntecedent();
@@ -231,6 +225,10 @@ void setup() {
   FuzzyRuleAntecedent *if_smoke_med_or_high_and_delta_smoke_low  = new FuzzyRuleAntecedent();
   if_smoke_med_or_high_and_delta_smoke_low->joinWithAND(if_smoke_med_or_smoke_high, if_delta_smoke_low);
 
+  // (Smoke Med || Smoke High) && ANY Delta Smoke 
+  FuzzyRuleAntecedent *if_smoke_med_or_high_and_any_delta_smoke  = new FuzzyRuleAntecedent();
+  if_smoke_med_or_high_and_any_delta_smoke->joinWithAND(if_smoke_med_or_smoke_high, if_any_value_delta_smoke);
+
   // (Smoke Low || Smoke Med) && Delta Smoke Low
   FuzzyRuleAntecedent *if_smoke_low_or_med_and_delta_smoke_low  = new FuzzyRuleAntecedent();
   if_smoke_low_or_med_and_delta_smoke_low->joinWithAND(if_smoke_low_or_smoke_med, if_delta_smoke_low);
@@ -246,6 +244,10 @@ void setup() {
   // Smoke High && Delta Smoke High
   FuzzyRuleAntecedent *if_smoke_high_and_delta_smoke_high  = new FuzzyRuleAntecedent();
   if_smoke_high_and_delta_smoke_high->joinWithAND(if_smoke_high, if_delta_smoke_high);
+
+  // Smoke High && Delta Smoke Med
+  FuzzyRuleAntecedent *if_smoke_high_and_delta_smoke_med  = new FuzzyRuleAntecedent();
+  if_smoke_high_and_delta_smoke_med->joinWithAND(if_smoke_high, if_delta_smoke_med);
 
   // Smoke High && Delta Smoke Low
   FuzzyRuleAntecedent *if_smoke_high_and_delta_smoke_low  = new FuzzyRuleAntecedent();
@@ -286,6 +288,18 @@ void setup() {
   // Smoke Med && (Delta Smoke Med || High)
   FuzzyRuleAntecedent *if_smoke_med_and_delta_smoke_med_or_high  = new FuzzyRuleAntecedent();
   if_smoke_med_and_delta_smoke_med_or_high->joinWithAND(if_smoke_med, if_delta_smoke_med_or_delta_smoke_high);
+
+  // Smoke High && (Delta Smoke Med || High)
+  FuzzyRuleAntecedent *if_smoke_high_and_delta_smoke_med_or_high  = new FuzzyRuleAntecedent();
+  if_smoke_high_and_delta_smoke_med_or_high->joinWithAND(if_smoke_high, if_delta_smoke_med_or_delta_smoke_high);
+
+  // Smoke ANY && Delta Smoke High
+  FuzzyRuleAntecedent *if_any_smoke_and_delta_smoke_high  = new FuzzyRuleAntecedent();
+  if_any_smoke_and_delta_smoke_high->joinWithAND(if_any_value_smoke, if_delta_smoke_high);
+
+  // Smoke ANY && (Delta Smoke Med || High)
+  FuzzyRuleAntecedent *if_any_smoke_and_delta_smoke_med_or_high  = new FuzzyRuleAntecedent();
+  if_any_smoke_and_delta_smoke_med_or_high->joinWithAND(if_any_value_smoke, if_delta_smoke_med_or_delta_smoke_high);
 
   // Antecedent of rule n°1
   
@@ -468,6 +482,78 @@ void setup() {
   // Temp Low && delta Temp High && Smoke Med && Delta Smoke High
   FuzzyRuleAntecedent *if_t_l_and_dt_h_and_s_m_and_ds_h = new FuzzyRuleAntecedent();
   if_t_l_and_dt_h_and_s_m_and_ds_h->joinWithAND(if_temp_low_and_delta_temp_high, if_smoke_med_and_delta_smoke_high);
+
+  //
+
+  // Antecedent of rule n°24
+
+  // Temp Low && delta Temp High && Smoke High && (Delta Smoke Med || High)
+  FuzzyRuleAntecedent *if_t_l_and_dt_h_and_s_h_and_ds_m_or_h = new FuzzyRuleAntecedent();
+  if_t_l_and_dt_h_and_s_h_and_ds_m_or_h->joinWithAND(if_temp_low_and_delta_temp_high, if_smoke_high_and_delta_smoke_med_or_high);
+
+  //
+
+  // Antecedent of rule n°25
+
+  // Temp Med && delta Temp Low && Smoke High && Delta Smoke High
+  FuzzyRuleAntecedent *if_t_m_and_dt_l_and_s_h_and_ds_h = new FuzzyRuleAntecedent();
+  if_t_m_and_dt_l_and_s_h_and_ds_h->joinWithAND(if_temp_med_and_delta_temp_low, if_smoke_high_and_delta_smoke_high);
+
+  //
+
+  // Antecedent of rule n°26
+
+  // Temp Med && delta Temp Med && Smoke ANY && Delta Smoke High
+  FuzzyRuleAntecedent *if_t_m_and_dt_m_and_any_s_and_ds_h = new FuzzyRuleAntecedent();
+  if_t_m_and_dt_m_and_any_s_and_ds_h->joinWithAND(if_temp_med_and_delta_temp_med, if_any_smoke_and_delta_smoke_high);
+
+  //
+
+  // Antecedent of rule n°27
+
+  // Temp Med && delta Temp Med && Smoke High && Delta Smoke Med
+  FuzzyRuleAntecedent *if_t_m_and_dt_m_and_s_h_and_ds_m = new FuzzyRuleAntecedent();
+  if_t_m_and_dt_m_and_s_h_and_ds_m->joinWithAND(if_temp_med_and_delta_temp_med, if_smoke_high_and_delta_smoke_med);
+
+  //
+
+  // Antecedent of rule n°28
+
+  // Temp Med && delta Temp High && ANY Smoke && (Delta Smoke Med || High)
+  FuzzyRuleAntecedent *if_t_m_and_dt_h_and_any_s_and_ds_m_or_h = new FuzzyRuleAntecedent();
+  if_t_m_and_dt_h_and_any_s_and_ds_m_or_h->joinWithAND(if_temp_med_and_delta_temp_high, if_any_smoke_and_delta_smoke_med_or_high);
+
+  //
+
+  // Antecedent of rule n°29
+
+  // Temp Med && delta Temp High && Smoke High && Delta Smoke Low
+  FuzzyRuleAntecedent *if_t_m_and_dt_h_and_s_h_and_ds_l = new FuzzyRuleAntecedent();
+  if_t_m_and_dt_h_and_s_h_and_ds_l->joinWithAND(if_temp_med_and_delta_temp_high, if_smoke_high_and_delta_smoke_low);
+
+  //
+
+  // Antecedent of rule n°30
+
+  // Temp High && ANY delta Temp && Smoke Low && Delta Smoke High
+  FuzzyRuleAntecedent *if_t_h_and_any_dt_and_s_l_and_ds_h = new FuzzyRuleAntecedent();
+  if_t_h_and_any_dt_and_s_l_and_ds_h->joinWithAND(if_temp_high_and_delta_temp_any_value, if_smoke_low_and_delta_smoke_high);
+
+  //
+
+  // Antecedent of rule n°31
+
+  // Temp High && ANY delta Temp && (Smoke Med || High) && ANY Delta Smoke 
+  FuzzyRuleAntecedent *if_t_h_and_any_dt_and_s_m_or_h_and_any_ds = new FuzzyRuleAntecedent();
+  if_t_h_and_any_dt_and_s_m_or_h_and_any_ds->joinWithAND(if_temp_high_and_delta_temp_any_value, if_smoke_med_or_high_and_any_delta_smoke);
+
+  //
+
+  // Antecedent of rule n°32
+
+  // Temp High && delta Temp High && Smoke Low && Delta Smoke Med
+  FuzzyRuleAntecedent *if_t_h_and_dt_h_and_s_l_and_ds_m = new FuzzyRuleAntecedent();
+  if_t_h_and_dt_h_and_s_l_and_ds_m->joinWithAND(if_temp_high_and_delta_temp_high, if_smoke_low_and_delta_smoke_med);
 
   //
 }
