@@ -698,8 +698,63 @@ void setup() {
   // Rule n°32
   FuzzyRule *fuzzyRule32 = new FuzzyRule(32, if_t_h_and_dt_h_and_s_l_and_ds_m, then_fire_confidence_high);
   fuzzy->addFuzzyRule(fuzzyRule32);
+
+  // Set the Serial output
+  Serial.begin(115200);
+  // Set a random seed
+  randomSeed(analogRead(0));
 }
+
+float prev_t = 0;
+float prev_s = 0;
 
 void loop() {
   
+  // get random entrances
+  float input_t = random(0, 100);
+  float input_s = random(-0.001, 0.02);
+  float input_dt = input_t - prev_t;
+  float input_ds = input_s - prev_s;
+  prev_t = input_t;
+  prev_s = input_s;
+
+  Serial.printf("T: %f,S: %f, DT: %f, DS:%f\n", input_t, input_s, input_dt, input_ds);
+
+  fuzzy->setInput(1, input_t);
+  fuzzy->setInput(2, input_s);
+  fuzzy->setInput(3, input_dt);
+  fuzzy->setInput(4, input_ds);
+
+  fuzzy->fuzzify();
+
+  Serial.println("Input: ");
+  Serial.print("\tTemp: Low-> ");
+  Serial.print(IT_Low->getPertinence());
+  Serial.print(", Med-> ");
+  Serial.print(IT_Med->getPertinence());
+  Serial.print(", High-> ");
+  Serial.println(IT_High->getPertinence());
+
+  Serial.print("\tSmoke: Low-> ");
+  Serial.print(IS_Low->getPertinence());
+  Serial.print(", Med-> ");
+  Serial.print(IS_Med->getPertinence());
+  Serial.print(", High-> ");
+  Serial.println(IS_High->getPertinence());
+
+  float output1 = fuzzy->defuzzify(1);
+
+  Serial.println("Output: ");
+  Serial.print("\tFire Confidence: Low-> ");
+  Serial.print(FC_Low->getPertinence());
+  Serial.print(", Med-> ");
+  Serial.print(FC_Med->getPertinence());
+  Serial.print(", High-> ");
+  Serial.println(FC_High->getPertinence());
+
+  Serial.println("Result: ");
+  Serial.print("\t\t\tFire Confidence: ");
+  Serial.print(output1);
+
+  delay(5000);
 }
