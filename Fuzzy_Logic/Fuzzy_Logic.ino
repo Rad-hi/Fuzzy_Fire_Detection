@@ -38,17 +38,8 @@ void loop() {
     
     fire_conf fc = get_fire_conf();
   
-    Serial.println("Output confidence: ");
-    Serial.print("Fire Confidence: Low-> ");
-    Serial.print(fc.fire_low);
-    Serial.print(", Med-> ");
-    Serial.print(fc.fire_med);
-    Serial.print(", High-> ");
-    Serial.println(fc.fire_high);
-  
-    Serial.println("Result: ");
-    Serial.print("Fire Confidence: ");
-    Serial.println(output1);
+    Serial.printf("Output: \nFire Confidence: Low-> %f, Med-> %f, High-> %f\n", fc.fire_low, fc.fire_med, fc.fire_high);
+    Serial.printf("Result:\nFire Confidence: %f\n", output1);
   
   #endif
   
