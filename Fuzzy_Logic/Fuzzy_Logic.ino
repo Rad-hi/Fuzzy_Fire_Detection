@@ -17,6 +17,8 @@ float prev_t = 0;
 float prev_s = 0;
 
 void loop() {
+
+  // Acquire inputs from sensors/random/testing-dataset
   
   // get random entrances
   float input_t = random(0, 100);
@@ -26,12 +28,19 @@ void loop() {
   prev_t = input_t;
   prev_s = input_s;
 
+  //Set fuzzy-system's inputs
+  
   set_fuzzy_inputs(input_t, input_s, input_dt, input_ds);
 
+  // Fuzzify inputs
+  
   fuzzify_system();
+
+  // Defuzzify and get final result
   
   float output1 = defuzzify_system();
 
+  // Viz
   #if VERBOSE
 
     Serial.printf("Inputs:\nT: %f,S: %f, DT: %f, DS: %f\n", input_t, input_s, input_dt, input_ds);
@@ -43,5 +52,5 @@ void loop() {
   
   #endif
   
-  delay(2000);
+  delay(2000); // just for ease of reading
 }
