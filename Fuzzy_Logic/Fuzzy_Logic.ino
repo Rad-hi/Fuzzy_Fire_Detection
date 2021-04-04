@@ -11,6 +11,7 @@ void setup(){
   
   // Set a random seed
   randomSeed(analogRead(0));
+  setup_fuzzy();
 }
 
 float prev_t = 0;
@@ -22,8 +23,8 @@ void loop() {
   
   // get random entrances
   float input_t = random(0, 100);
-  float input_s = random(-0.001, 0.02);
   float input_dt = input_t - prev_t;
+  float input_s = random(-1, 20);
   float input_ds = input_s - prev_s;
   prev_t = input_t;
   prev_s = input_s;
@@ -43,12 +44,13 @@ void loop() {
   // Viz
   #if VERBOSE
 
-    Serial.printf("Inputs:\nT: %f,S: %f, DT: %f, DS: %f\n", input_t, input_s, input_dt, input_ds);
+    Serial.printf("Inputs:\nT: %f, S: %f, DT: %f, DS: %f\n", input_t, input_s, input_dt, input_ds);
     
     fire_conf fc = get_fire_conf();
   
     Serial.printf("Output: \nFire Confidence: Low-> %f, Med-> %f, High-> %f\n", fc.fire_low, fc.fire_med, fc.fire_high);
     Serial.printf("Result:\nFire Confidence: %f\n", output1);
+    Serial.println("########################");
   
   #endif
   
