@@ -10,3 +10,7 @@ The implemented fuzzy system is studied and designed in this paper: https://doi.
 This code is meant to be embedded into an IoT node, that's supposed to end up being a **fire detection & alarming system, powered with energy harvesting techniques**. 
 
 This code isn't final, and will be edited over the next period, changes are to be expected.
+
+## Initial code structure
+
+<img src="Images/Fuzzy_Fire_Detection.png">
