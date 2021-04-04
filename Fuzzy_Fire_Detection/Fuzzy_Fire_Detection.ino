@@ -1,4 +1,5 @@
 #include "Fuzzy_system.h"
+#include<ESP8266WiFi.h>
 
 // Device states
 #define START                   0
@@ -15,13 +16,24 @@
 #define STANDBY_SLEEP           10000000UL  // 10 seconds 
 #define ALERT_SLEEP             5000000UL   // 5 seconds 
 
-// Turn ON/OFF debug printing (not included in code when FALSE) 
-#define VERBOSE                 true
+// WiFi data
+#define WLAN_SSID               ""
+#define WLAN_PASSWD             ""
+
+// Turn ON/OFF debug printing (debugging section not included in compiled code when VERBOSE is false) 
+#define VERBOSE                 false
 
 // Functions' prototypes
 void off_unnecessary();
+void wake_wifi_up();
 void init_sensors();
 float* read_sensors();
+
+
+byte device_state = START;
+
+float prev_t = 0;
+float prev_s = 0;
 
 void setup(){
   #if VERBOSE
@@ -29,11 +41,6 @@ void setup(){
     Serial.begin(115200);
   #endif
 }
-
-byte device_state = START;
-
-float prev_t = 0;
-float prev_s = 0;
 
 void loop() {
   switch(device_state){
@@ -50,10 +57,10 @@ void loop() {
 
       // Viz
       #if VERBOSE
-        Serial.printf("Inputs:\nT: %f, S: %f, DT: %f, DS: %f\n", input_t, input_s, input_dt, input_ds);
+        Serial.printf("Inputs:\nT: %f, S: %f, DT: %f, DS: %f\n", *fuzzy_inputs, *(fuzzy_inputs + 1), *(fuzzy_inputs + 2), *(fuzzy_inputs + 3));
         fire_conf fc = get_fire_conf();
         Serial.printf("Output: \nFire Confidence: Low-> %f, Med-> %f, High-> %f\n", fc.fire_low, fc.fire_med, fc.fire_high);
-        Serial.printf("Result:\nFire Confidence: %f\n", output1);
+        Serial.printf("Result:\nFire Confidence: %f\n", fire_percentage);
         Serial.println("########################");
       #endif
 
@@ -71,20 +78,23 @@ void loop() {
     }
     
     case NORMAL:{
-      
-      ESP.deepSleep(NORMAL_SLEEP);
+
+      // WAKE_RF_DISABLED to keep the WiFi radio disabled when we wake up
+      ESP.deepSleep(NORMAL_SLEEP, WAKE_RF_DISABLED);
       break;
     }
     
     case STANDBY:{
-      
-      ESP.deepSleep(STANDBY_SLEEP);
+
+      // WAKE_RF_DISABLED to keep the WiFi radio disabled when we wake up
+      ESP.deepSleep(STANDBY_SLEEP, WAKE_RF_DISABLED);
       break;
     }
     
     case ALERT:{
-      
-      ESP.deepSleep(ALERT_SLEEP);
+
+      // WAKE_RF_DISABLED to keep the WiFi radio disabled when we wake up
+      ESP.deepSleep(ALERT_SLEEP, WAKE_RF_DISABLED);
       break;
     }
     
@@ -92,12 +102,37 @@ void loop() {
   }
 }
 
-void off_unnecessary(){
-  ;
-}
 void init_sensors(){
   ;
 }
+
 float* read_sensors(){
   ;
+}
+
+void off_unnecessary(){
+  WiFi.mode(WIFI_OFF);
+  WiFi.forceSleepBegin();
+  yield();
+}
+
+void wake_wifi_up(){
+  
+  WiFi.forceSleepWake();
+  yield();
+  
+  // Disable the WiFi persistence. ESP8266 will not load and save WiFi settings in the flash memory.
+  WiFi.persistent(false);
+  
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WLAN_SSID, WLAN_PASSWD);
+  
+  /*
+  IPAddress staticIP(192,168,1,22);
+  IPAddress gateway(192,168,1,9);
+  IPAddress subnet(255,255,255,0);
+    
+  // Make a static IP address to reduce scanning time
+  WiFi.config(staticIP, gateway, subnet);
+  */
 }
