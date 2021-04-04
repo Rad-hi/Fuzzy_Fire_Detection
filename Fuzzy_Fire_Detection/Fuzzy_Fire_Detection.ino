@@ -20,6 +20,11 @@
 #define WLAN_SSID               ""
 #define WLAN_PASSWD             ""
 
+// Message types
+#define DAILY_MSG               0
+#define STANDBY_MSG             1
+#define ALERT_MSG               2
+
 // Turn ON/OFF debug printing (debugging section not included in compiled code when VERBOSE is false) 
 #define VERBOSE                 false
 
@@ -28,6 +33,7 @@ void off_unnecessary();
 void wake_wifi_up();
 void init_sensors();
 float* read_sensors();
+void communicate_(byte);
 
 
 byte device_state = START;
@@ -79,6 +85,7 @@ void loop() {
     
     case NORMAL:{
 
+      communicate_(DAILY_MSG);
       // WAKE_RF_DISABLED to keep the WiFi radio disabled when we wake up
       ESP.deepSleep(NORMAL_SLEEP, WAKE_RF_DISABLED);
       break;
@@ -86,6 +93,7 @@ void loop() {
     
     case STANDBY:{
 
+      communicate_(STANDBY_MSG);
       // WAKE_RF_DISABLED to keep the WiFi radio disabled when we wake up
       ESP.deepSleep(STANDBY_SLEEP, WAKE_RF_DISABLED);
       break;
@@ -93,6 +101,7 @@ void loop() {
     
     case ALERT:{
 
+      communicate_(ALERT_MSG);
       // WAKE_RF_DISABLED to keep the WiFi radio disabled when we wake up
       ESP.deepSleep(ALERT_SLEEP, WAKE_RF_DISABLED);
       break;
@@ -132,7 +141,22 @@ void wake_wifi_up(){
   IPAddress gateway(192,168,1,9);
   IPAddress subnet(255,255,255,0);
     
-  // Make a static IP address to reduce scanning time
+  // Make a static IP address to DHCP IP request time
   WiFi.config(staticIP, gateway, subnet);
   */
+}
+
+void communicate_(byte msg_type){
+  wake_wifi_up();
+  switch(msg_type){
+    case DAILY_MSG:{
+      break;
+    }
+    case STANDBY_MSG:{
+      break;
+    }
+    case ALERT_MSG:{
+      break;
+    }
+  }
 }
