@@ -31,6 +31,9 @@
 #define PREV_S_RTC_LOC          3
 #define WAKE_COUNTER            4
 
+// 
+#define SEC_IN_DAY              86400
+
 // Message types
 #define DAILY_MSG               0
 #define STANDBY_MSG             1
@@ -47,9 +50,11 @@ void init_sensors();
 float* read_sensors();
 void communicate_(byte);
 void check_rtc_mem_validity();
+void check_for_daily_report(byte);
 
 // Global variables
 byte device_state = START;
+uint32_t wake_counter;
 
 void setup(){
   off_unnecessary(); // Turn of Wi-Fi and Bluetooth
@@ -96,7 +101,7 @@ void loop() {
     
     case NORMAL:{
 
-      communicate_(DAILY_MSG);
+      check_for_daily_report(60);
       // WAKE_RF_DISABLED to keep the WiFi radio disabled when we wake up
       ESP.deepSleep(NORMAL_SLEEP, WAKE_RF_DISABLED);
       break;
@@ -104,7 +109,7 @@ void loop() {
     
     case STANDBY:{
 
-      communicate_(STANDBY_MSG);
+      check_for_daily_report(10);
       // WAKE_RF_DISABLED to keep the WiFi radio disabled when we wake up
       ESP.deepSleep(STANDBY_SLEEP, WAKE_RF_DISABLED);
       break;
@@ -120,6 +125,21 @@ void loop() {
     
     default: break;
   }
+}
+
+void check_for_daily_report(byte period){
+  // Read how many seconds we've been asleep for since the last 24h report
+  ESP.rtcUserMemoryRead(WAKE_COUNTER, &wake_counter, sizeof(wake_counter));
+  if(wake_counter == SEC_IN_DAY){
+    switch(period){
+      case 60: communicate_(DAILY_MSG); break;
+      case 10: communicate_(STANDBY_MSG); break;
+      default: break;
+    }
+    wake_counter = 0;
+  }
+  else wake_counter += period;
+  ESP.rtcUserMemoryWrite(WAKE_COUNTER, &wake_counter, sizeof(wake_counter));
 }
 
 void check_rtc_mem_validity(){
