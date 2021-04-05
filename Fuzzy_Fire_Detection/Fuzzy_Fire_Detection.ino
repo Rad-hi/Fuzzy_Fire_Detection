@@ -158,7 +158,7 @@ void check_rtc_mem_validity(){
     ESP.rtcUserMemoryWrite(PATTERN_H_RTC_LOC, &p_H, sizeof(p_H));
     ESP.rtcUserMemoryWrite(PATTERN_L_RTC_LOC, &p_L, sizeof(p_L));
 
-    // Reset all RTC memory savings to 0
+    // Reset all RTC memory savings that we care about their value to 0
     ESP.rtcUserMemoryWrite(PREV_T_RTC_LOC, &reset_var, sizeof(reset_var));
     ESP.rtcUserMemoryWrite(PREV_S_RTC_LOC, &reset_var, sizeof(reset_var));
     ESP.rtcUserMemoryWrite(WAKE_COUNTER, &reset_var, sizeof(reset_var));    

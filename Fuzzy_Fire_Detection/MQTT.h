@@ -1,7 +1,5 @@
 #ifndef __MQTT_H__
   #define __MQTT_H__
-      
-  #include"Arduino.h"
   
   #include<ESP8266WiFi.h>
   #include <PubSubClient.h>  // https://github.com/knolleary/pubsubclient/

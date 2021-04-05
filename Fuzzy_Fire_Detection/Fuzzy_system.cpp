@@ -726,32 +726,3 @@ fire_conf get_fire_conf(){
   fc.fire_high = FC_High->getPertinence();
   return fc;
 }
-
-/*
-char* pretty_print_everything(){
-   pretty = "";
-  
-  pretty += "T:   ,S:   , DT:   , DS:   \n";
-  pretty += String(input_t);
-  pretty += String(input_s);
-  pretty += String(input_dt);
-  pretty += String(input_ds);
-
-  Serial.println("Input: ");
-  Serial.print("Temp: Low-> ");
-  Serial.print(IT_Low->getPertinence());
-  Serial.print(", Med-> ");
-  Serial.print(IT_Med->getPertinence());
-  Serial.print(", High-> ");
-  Serial.println(IT_High->getPertinence());
-
-  Serial.print("Smoke: Low-> ");
-  Serial.print(IS_Low->getPertinence());
-  Serial.print(", Med-> ");
-  Serial.print(IS_Med->getPertinence());
-  Serial.print(", High-> ");
-  Serial.println(IS_High->getPertinence());
-  return pretty;
-}
-
-*/
