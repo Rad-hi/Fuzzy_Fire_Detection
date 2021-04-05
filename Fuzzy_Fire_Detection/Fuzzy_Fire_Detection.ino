@@ -68,7 +68,7 @@ byte device_state = START;
 uint32_t wake_counter;
 
 void setup(){
-  off_unnecessary(); // Turn of Wi-Fi and Bluetooth
+  off_unnecessary(); // Turn off Wi-Fi
   check_rtc_mem_validity();
   
   #if VERBOSE
@@ -139,7 +139,7 @@ void loop() {
 }
 
 void check_for_daily_report(byte period){
-  // Read how many seconds we've been asleep for since the last 24h report
+  // Read how many seconds we've been asleep for, since the last 24h-report
   ESP.rtcUserMemoryRead(WAKE_COUNTER, &wake_counter, sizeof(wake_counter));
   if(wake_counter == SEC_IN_DAY){
     switch(period){
