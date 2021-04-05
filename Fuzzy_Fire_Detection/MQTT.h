@@ -6,9 +6,9 @@
   
   #define BROKER            "io.adafruit.com"
   #define MQTT_PORT         1883
-  #define MQTT_USER         "Radhi"
+  #define MQTT_USER         ""
   #define MQTT_PASSWORD     ""
-  #define TOPIC             "Radhi/feeds/Fire"
+  #define TOPIC             ""
   
   void MQTT_setup();
   void MQTT_connect();

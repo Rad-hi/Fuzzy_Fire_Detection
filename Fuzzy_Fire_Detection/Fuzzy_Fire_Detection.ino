@@ -1,3 +1,14 @@
+/*
+ * Main file for the Fuzzy_Fire_Detection IoT node.
+ * ---
+ * This file requires a collection of header files to run properly.
+ * Header files: {Fuzzy_system.h(Fuzzy_system.cpp),
+ *                WIFI.h(WIFI.cpp), 
+ *                MQTT.h(MQTT.cpp)}
+ * ---
+ * Written by: Radhi SGHAIER, https://github.com/Rad-hi 
+ */
+
 #include"Fuzzy_system.h"
 #include"WIFI.h"
 
