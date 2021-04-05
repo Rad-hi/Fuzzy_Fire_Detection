@@ -24,6 +24,10 @@
 #define STANDBY_SLEEP           10000000UL  // 10 seconds 
 #define ALERT_SLEEP             5000000UL   // 5 seconds 
 
+// RTC Memory locations
+#define PREV_T_RTC_LOC          0
+#define PREV_S_RTC_LOC          1
+
 // Message types
 #define DAILY_MSG               0
 #define STANDBY_MSG             1
@@ -42,8 +46,6 @@ void communicate_(byte);
 
 // Global variables
 byte device_state = START;
-float prev_t = 0; // Previous value of Temp, to calculate Delta-Temp
-float prev_s = 0; // Previous value of Smoke, to calculate Delta-Smoke
 
 void setup(){
   #if VERBOSE
@@ -115,12 +117,36 @@ void loop() {
   }
 }
 
+void check_rtc_mem_validity(){
+  // At boot, the RTC memory will contain random values, so we need a way to check
+  // If the data we're reading is valid on not, so to do that we read the 8 first bytes, 
+  // and these need to be exactly 66669420 (any specific pattern)
+  
+}
+
 void init_sensors(){
   ;
 }
 
 float* read_sensors(){
-  ;
+  uint32_t prev_t = 0, prev_s = 0, input_t, input_s;
+    
+  // Read the sensor values from the two sensors
+  /*
+   * INSERT CODE HERE
+   */
+  
+  // Read previous values of the Temp and Smoke variables from RTC memory
+  ESP.rtcUserMemoryRead(PREV_T_RTC_LOC, &prev_t, sizeof(prev_t));
+  ESP.rtcUserMemoryRead(PREV_S_RTC_LOC, &prev_s, sizeof(prev_s));
+
+  // Update the previous values of the Temp and Smoke varibales in RTC memory
+  ESP.rtcUserMemoryWrite(PREV_T_RTC_LOC, &input_t, sizeof(input_t));
+  ESP.rtcUserMemoryWrite(PREV_S_RTC_LOC, &input_s, sizeof(input_s));
+  
+  // Temp, Smoke, Delta_Temp, Delta_Smoke
+  float output[4] = {input_t, input_s, input_t - prev_t, input_s - prev_s};
+  return output;
 }
 
 
