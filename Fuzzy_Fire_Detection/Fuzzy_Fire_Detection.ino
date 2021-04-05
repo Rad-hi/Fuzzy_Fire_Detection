@@ -1,5 +1,13 @@
-#include "Fuzzy_system.h"
-#include<ESP8266WiFi.h>
+#include"Fuzzy_system.h"
+#include"WIFI.h"
+
+#include <ArduinoJson.h>
+
+// Turn ON/OFF debug printing (debugging section not included in compiled code when VERBOSE is false) 
+#define VERBOSE                 false
+
+// 115.2K baud serial connection to computer
+#define SERIAL_MON_BAUD_RATE    115200
 
 // Device states
 #define START                   0
@@ -12,39 +20,35 @@
 #define ALERT_THRESHHOLD        60.0
 
 // Sleep times
-#define NORMAL_SLEEP            60000000UL  // 1 minute   (uSeconds)
+#define NORMAL_SLEEP            60000000UL  // 1 minute   (uSeconds) (60e6 works too)
 #define STANDBY_SLEEP           10000000UL  // 10 seconds 
 #define ALERT_SLEEP             5000000UL   // 5 seconds 
-
-// WiFi data
-#define WLAN_SSID               ""
-#define WLAN_PASSWD             ""
 
 // Message types
 #define DAILY_MSG               0
 #define STANDBY_MSG             1
 #define ALERT_MSG               2
 
-// Turn ON/OFF debug printing (debugging section not included in compiled code when VERBOSE is false) 
-#define VERBOSE                 false
+// Message buffer
+#define JSON_BUFFER_SIZE        650         // Calculate the correct size using:
+                                            // https://arduinojson.org/v5/assistant/
+                                             
+StaticJsonDocument<JSON_BUFFER_SIZE> DATA;  // Json file that'll contain all data, and then be sent via mqtt
 
 // Functions' prototypes
-void off_unnecessary();
-void wake_wifi_up();
 void init_sensors();
 float* read_sensors();
 void communicate_(byte);
 
-
+// Global variables
 byte device_state = START;
-
 float prev_t = 0;
 float prev_s = 0;
 
 void setup(){
   #if VERBOSE
     // Set the Serial output
-    Serial.begin(115200);
+    Serial.begin(SERIAL_MON_BAUD_RATE);
   #endif
 }
 
@@ -119,44 +123,36 @@ float* read_sensors(){
   ;
 }
 
-void off_unnecessary(){
-  WiFi.mode(WIFI_OFF);
-  WiFi.forceSleepBegin();
-  yield();
-}
-
-void wake_wifi_up(){
-  
-  WiFi.forceSleepWake();
-  yield();
-  
-  // Disable the WiFi persistence. ESP8266 will not load and save WiFi settings in the flash memory.
-  WiFi.persistent(false);
-  
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(WLAN_SSID, WLAN_PASSWD);
-  
-  /*
-  IPAddress staticIP(192,168,1,22);
-  IPAddress gateway(192,168,1,9);
-  IPAddress subnet(255,255,255,0);
-    
-  // Make a static IP address to DHCP IP request time
-  WiFi.config(staticIP, gateway, subnet);
-  */
-}
 
 void communicate_(byte msg_type){
+  MQTT_setup();
   wake_wifi_up();
+  char buffer[JSON_BUFFER_SIZE];
+  
   switch(msg_type){
-    case DAILY_MSG:{
+    case DAILY_MSG:{    // Fill daily msg data
+      DATA["MSG"] = "N"; // Message tag contains N (Normal) indicating the node is still alive   
       break;
     }
-    case STANDBY_MSG:{
+    case STANDBY_MSG:{  // Fill satndby msg data
+      DATA["MSG"] = "S"; // Message tag contains S (Standby) indicating that more attention is required
       break;
     }
-    case ALERT_MSG:{
+    case ALERT_MSG:{    // Fill alert data
+      DATA["MSG"] = "A"; // Message tag contains A (Alert) indicating a fire alert
       break;
     }
+    default: break;
   }
+
+  // Serialize data, connect, and send.
+  serializeJson(DATA, buffer);
+  MQTT_connect();
+  send_data(buffer);
+  
+  #if VERBOSE
+    Serial.print("Sent: ");
+    Serial.println(buffer);
+  #endif
+ 
 }
