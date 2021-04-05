@@ -3,7 +3,7 @@
 
 #include <ArduinoJson.h>
 
-// Turn ON/OFF debug printing (debugging section not included in compiled code when VERBOSE is false) 
+// Turn ON/OFF debug printing (debugging section won't be included in compiled code when VERBOSE is false) 
 #define VERBOSE                 false
 
 // 115.2K baud serial connection to computer
@@ -30,7 +30,7 @@
 #define ALERT_MSG               2
 
 // Message buffer
-#define JSON_BUFFER_SIZE        650         // Calculate the correct size using:
+#define JSON_BUFFER_SIZE        128         // Calculate the correct size using:
                                             // https://arduinojson.org/v5/assistant/
                                              
 StaticJsonDocument<JSON_BUFFER_SIZE> DATA;  // Json file that'll contain all data, and then be sent via mqtt
@@ -42,8 +42,8 @@ void communicate_(byte);
 
 // Global variables
 byte device_state = START;
-float prev_t = 0;
-float prev_s = 0;
+float prev_t = 0; // Previous value of Temp, to calculate Delta-Temp
+float prev_s = 0; // Previous value of Smoke, to calculate Delta-Smoke
 
 void setup(){
   #if VERBOSE
