@@ -25,8 +25,11 @@
 #define ALERT_SLEEP             5000000UL   // 5 seconds 
 
 // RTC Memory locations
-#define PREV_T_RTC_LOC          0
-#define PREV_S_RTC_LOC          1
+#define PATTERN_H_RTC_LOC       0
+#define PATTERN_L_RTC_LOC       1
+#define PREV_T_RTC_LOC          2
+#define PREV_S_RTC_LOC          3
+#define WAKE_COUNTER            4
 
 // Message types
 #define DAILY_MSG               0
@@ -43,11 +46,15 @@ StaticJsonDocument<JSON_BUFFER_SIZE> DATA;  // Json file that'll contain all dat
 void init_sensors();
 float* read_sensors();
 void communicate_(byte);
+void check_rtc_mem_validity();
 
 // Global variables
 byte device_state = START;
 
 void setup(){
+  off_unnecessary(); // Turn of Wi-Fi and Bluetooth
+  check_rtc_mem_validity();
+  
   #if VERBOSE
     // Set the Serial output
     Serial.begin(SERIAL_MON_BAUD_RATE);
@@ -58,8 +65,6 @@ void loop() {
   switch(device_state){
     
     case START:{
-      
-      off_unnecessary(); // Turn of Wi-Fi and Bluetooth
       init_sensors();    // Initialize sensors
       setup_fuzzy();     // Initialize the fuzzy system
       float* fuzzy_inputs = read_sensors();
@@ -119,9 +124,25 @@ void loop() {
 
 void check_rtc_mem_validity(){
   // At boot, the RTC memory will contain random values, so we need a way to check
-  // If the data we're reading is valid on not, so to do that we read the 8 first bytes, 
-  // and these need to be exactly 66669420 (any specific pattern)
-  
+  // If the data we're reading is valid on not (edited by us, or random), so to do that 
+  // we read the 8 first bytes, and these need to be exactly 66669420 (any specific pattern)
+
+  uint32_t p_H, p_L, reset_var = 0;
+  ESP.rtcUserMemoryRead(PATTERN_H_RTC_LOC, &p_H, sizeof(p_H));
+  ESP.rtcUserMemoryRead(PATTERN_L_RTC_LOC, &p_L, sizeof(p_L));
+  if(p_H != 0x6666 && p_L != 0x9420){ // Pattern is invalid
+
+    // Update the pattern to indicate that we indeed modified it
+    p_H = 0x6666; 
+    p_L = 0x9420;
+    ESP.rtcUserMemoryWrite(PATTERN_H_RTC_LOC, &p_H, sizeof(p_H));
+    ESP.rtcUserMemoryWrite(PATTERN_L_RTC_LOC, &p_L, sizeof(p_L));
+
+    // Reset all RTC memory savings to 0
+    ESP.rtcUserMemoryWrite(PREV_T_RTC_LOC, &reset_var, sizeof(reset_var));
+    ESP.rtcUserMemoryWrite(PREV_S_RTC_LOC, &reset_var, sizeof(reset_var));
+    ESP.rtcUserMemoryWrite(WAKE_COUNTER, &reset_var, sizeof(reset_var));    
+  }
 }
 
 void init_sensors(){
