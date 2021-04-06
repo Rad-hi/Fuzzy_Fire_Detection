@@ -6,7 +6,7 @@
   
   #define BROKER            "io.adafruit.com"
   #define MQTT_PORT         1883
-  #define MQTT_USER         ""
+  #define MQTT_USER         "Radhi"
   #define MQTT_PASSWORD     ""
   #define TOPIC             ""
   
@@ -15,4 +15,5 @@
   void MQTT_subscribe();
   void MQTT_callback(char*, byte*, unsigned int);
   void send_data(const char*);
+  bool mqtt_state();
 #endif
