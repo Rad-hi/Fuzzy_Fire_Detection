@@ -5,7 +5,7 @@
 
   // WiFi data
   #define WLAN_SSID               ""
-  #define WLAN_PASSWD             "" 
+  #define WLAN_PASSWD             ""
   
   void off_unnecessary();
   void wake_wifi_up();

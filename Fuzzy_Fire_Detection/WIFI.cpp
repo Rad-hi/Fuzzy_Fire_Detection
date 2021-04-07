@@ -12,25 +12,25 @@ void off_unnecessary(){
 
 void wake_wifi_up(){
   WiFi.forceSleepWake();
-  yield();
+  delay(1);
   
   // Disable the WiFi persistence. ESP8266 will not load and save WiFi settings in the flash memory.
   WiFi.persistent(false);
-/*
-  IPAddress staticIP(192,168,1,22);
-  IPAddress gateway(192,168,1,9);
-  IPAddress subnet(255,255,255,0);
-    
-  // Make a static IP address to DHCP IP request time
-  WiFi.config(staticIP, gateway, subnet);
-  */
+
+
+  // Make a static IP address to decrease DHCP IP request time
+  IPAddress staticIP(104,21,47,183); // IP of adafruit.io
+  IPAddress dns(107,21,47,183);      // DNS address of adafruit.io
+  IPAddress gateway(192,168,1,9);    // Optional, so left them randomly
+  IPAddress subnet(255,255,255,0);   // Default
+  WiFi.config(staticIP, dns, gateway, subnet);
+
+  // Turn on WiFi
   WiFi.mode(WIFI_STA);
   WiFi.begin(WLAN_SSID, WLAN_PASSWD);
+  delay(50);
   
   while(WiFi.status() != WL_CONNECTED){
-    yield();
+    delay(50);
   }
-  Serial.println("Connected to WiFi"); //*********************************
-  
-  
 }
