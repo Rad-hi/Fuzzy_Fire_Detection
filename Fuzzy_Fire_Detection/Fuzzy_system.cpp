@@ -7,7 +7,7 @@ Fuzzy *fuzzy = new Fuzzy();
 // https://blog.zerokol.com/2012/09/arduinofuzzy-fuzzy-library-for-arduino.html
 
 // Inputs' membership funtions
-FuzzySet *IT_Low     = new FuzzySet(0, 0, 30, 50);
+FuzzySet *IT_Low     = new FuzzySet(0, 0, 30, 50); // 0°C to 80°C
 FuzzySet *IT_Med     = new FuzzySet(30, 50, 50, 70);
 FuzzySet *IT_High    = new FuzzySet(50, 70, 80, 80);
 
@@ -15,13 +15,13 @@ FuzzySet *D_IT_Low   = new FuzzySet(-20, -20, 0, 5);
 FuzzySet *D_IT_Med   = new FuzzySet(0, 5, 5, 10);
 FuzzySet *D_IT_High  = new FuzzySet(5, 10, 20, 20);
 
-FuzzySet *IS_Low     = new FuzzySet(0, 0, 0.07, 0.15);
-FuzzySet *IS_Med     = new FuzzySet(0.07, 0.15, 0.15, 0.23);
-FuzzySet *IS_High    = new FuzzySet(0.15, 0.23, 0.25, 0.25);
+FuzzySet *IS_Low     = new FuzzySet(0, 0, 7, 15); // %7 to %25 obscurity
+FuzzySet *IS_Med     = new FuzzySet(7, 15, 15, 23);
+FuzzySet *IS_High    = new FuzzySet(15, 23, 25, 25);
 
-FuzzySet *D_IS_Low   = new FuzzySet(-0.01, -0.01, 0, 0.02);
-FuzzySet *D_IS_Med   = new FuzzySet(0, 0.02, 0.02, 0.04);
-FuzzySet *D_IS_High  = new FuzzySet(0.02, 0.04, 0.05, 0.05);
+FuzzySet *D_IS_Low   = new FuzzySet(-1, -1, 0, 2);
+FuzzySet *D_IS_Med   = new FuzzySet(0, 2, 2, 4);
+FuzzySet *D_IS_High  = new FuzzySet(2, 4, 5, 5);
 
 // Output's memebership funtion (Fire Confidence)
 FuzzySet *FC_Low     = new FuzzySet(-25, -25, 0, 50);
