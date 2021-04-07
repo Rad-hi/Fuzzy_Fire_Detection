@@ -9,6 +9,7 @@
   #define MQTT_USER         "Radhi"
   #define MQTT_PASSWORD     ""
   #define TOPIC             ""
+  #define MQTT_ID           ""
   
   void MQTT_setup();
   void MQTT_connect();

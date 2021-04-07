@@ -6,22 +6,16 @@ PubSubClient  mqtt(client);
 
 void MQTT_setup(){
   mqtt.setServer(BROKER, MQTT_PORT);
-  mqtt.setCallback(MQTT_callback);
+  //mqtt.setCallback(MQTT_callback);
 }
 
 void MQTT_connect(){
-  /*mqtt.connect("8266", MQTT_USER, MQTT_PASSWORD);
-  yield();*/
+  
   while (!mqtt.connected()) {
-  Serial.println("Connecting to MQTT...");
-  if (mqtt.connect("ESP8266Client", MQTT_USER, MQTT_PASSWORD )) {
-    Serial.println("connected"); 
-  } else {
-
-  Serial.print("failed with state ");
-  Serial.println(mqtt.state());
-  delay(2000);
-}
+    if(mqtt.connect(MQTT_ID, MQTT_USER, MQTT_PASSWORD ))return;
+    else{
+      delay(500);
+    }
   }
 }
 void MQTT_subscribe(){
