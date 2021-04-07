@@ -17,6 +17,9 @@
 // Turn ON/OFF debug printing (debugging section won't be included in compiled code when VERBOSE is false) 
 #define VERBOSE                 true
 
+// If this is true, two random numbers in the appropriate range will simulate the Temp & Smoke inputs
+#define SIMULATE_RANDOM         true
+
 // 115.2K baud serial connection to computer
 #define SERIAL_MON_BAUD_RATE    115200
 
@@ -34,6 +37,10 @@
 #define NORMAL_SLEEP            15000000UL  // 1 minute   (uSeconds) (60e6 works too)
 #define STANDBY_SLEEP           10000000UL  // 10 seconds 
 #define ALERT_SLEEP             5000000UL   // 5 seconds 
+
+// Period counters
+#define NORMAL_COUNTER          15
+#define STANDBY_COUNTER         10
 
 // RTC Memory locations
 #define PATTERN_H_RTC_LOC       0
@@ -58,7 +65,7 @@ StaticJsonDocument<JSON_BUFFER_SIZE> DATA;  // Json file that'll contain all dat
 
 // Functions' prototypes
 void init_sensors();
-float* read_sensors();
+float read_sensors();
 void communicate_(byte);
 void check_rtc_mem_validity();
 void check_for_daily_report(byte);
@@ -76,7 +83,10 @@ void setup(){
     Serial.begin(SERIAL_MON_BAUD_RATE);
   #endif
 
-  randomSeed(analogRead(A0)); 
+  // Sim
+  #if SIMULATE_RANDOM
+    randomSeed(analogRead(0)); 
+  #endif
 }
 
 void loop() {
@@ -86,11 +96,12 @@ void loop() {
       check_rtc_mem_validity();
       init_sensors();    // Initialize sensors
       setup_fuzzy();     // Initialize the fuzzy system
-      float* fuzzy_inputs = read_sensors();
+      float* fuzzy_inputs;
+      read_sensors(&fuzzy_inputs);
       set_fuzzy_inputs(*fuzzy_inputs, *(fuzzy_inputs + 1), *(fuzzy_inputs + 2), *(fuzzy_inputs + 3)); //Set fuzzy-system's inputs
       fuzzify_system();  // Fuzzify inputs
       float fire_percentage = defuzzify_system(); // Defuzzify and get final result
-
+      
       // Viz
       #if VERBOSE
         Serial.printf("\nInputs:\nT: %f, S: %f, DT: %f, DS: %f\n", *fuzzy_inputs, *(fuzzy_inputs + 1), *(fuzzy_inputs + 2), *(fuzzy_inputs + 3));
@@ -98,7 +109,10 @@ void loop() {
         Serial.printf("Output: \nFire Confidence: Low-> %f, Med-> %f, High-> %f\n", fc.fire_low, fc.fire_med, fc.fire_high);
         Serial.printf("Result:\nFire Confidence: %f\n", fire_percentage);
       #endif
-
+      
+      // Free allocated memory for the fuzzy inputs
+      free(fuzzy_inputs);
+      
       // Decide the next action
       if(fire_percentage - ALERT_THRESHHOLD > 0){ // fire_percentage > 60.0
         device_state = ALERT;
@@ -114,7 +128,12 @@ void loop() {
     
     case NORMAL:{
 
-      check_for_daily_report(60);
+      check_for_daily_report(NORMAL_COUNTER);
+
+      #if VERBOSE
+        Serial.println("Going to sleep...");
+      #endif
+      
       // WAKE_RF_DISABLED to keep the WiFi radio disabled when we wake up
       ESP.deepSleep(NORMAL_SLEEP, WAKE_RF_DISABLED);
       break;
@@ -122,7 +141,13 @@ void loop() {
     
     case STANDBY:{
 
-      check_for_daily_report(10);
+      communicate_(STANDBY_MSG);
+      check_for_daily_report(STANDBY_COUNTER);
+      
+      #if VERBOSE
+        Serial.println("Going to sleep...");
+      #endif
+      
       // WAKE_RF_DISABLED to keep the WiFi radio disabled when we wake up
       ESP.deepSleep(STANDBY_SLEEP, WAKE_RF_DISABLED);
       break;
@@ -131,6 +156,11 @@ void loop() {
     case ALERT:{
 
       communicate_(ALERT_MSG);
+      
+      #if VERBOSE
+        Serial.println("Going to sleep...");
+      #endif
+      
       // WAKE_RF_DISABLED to keep the WiFi radio disabled when we wake up
       ESP.deepSleep(ALERT_SLEEP, WAKE_RF_DISABLED);
       break;
@@ -143,13 +173,14 @@ void loop() {
 void check_for_daily_report(byte period){
   // Read how many seconds we've been asleep for, since the last 24h-report
   ESP.rtcUserMemoryRead(WAKE_COUNTER, &wake_counter, sizeof(wake_counter));
-  Serial.printf("Counter: %d\n", wake_counter);
-  if(wake_counter == SEC_IN_DAY){
-    switch(period){
-      case 60: communicate_(DAILY_MSG); break;
-      case 10: communicate_(STANDBY_MSG); break;
-      default: break;
-    }
+
+  // Viz
+  #if VERBOSE
+    Serial.printf("Wake counter: %d\n", wake_counter);
+  #endif
+  
+  if(wake_counter >= SEC_IN_DAY){
+    communicate_(DAILY_MSG);
     wake_counter = 0;
   }
   else wake_counter += period;
@@ -164,9 +195,20 @@ void check_rtc_mem_validity(){
   uint32_t p_H = 0, p_L = 0, reset_var = 0;
   ESP.rtcUserMemoryRead(PATTERN_H_RTC_LOC, &p_H, sizeof(p_H));
   ESP.rtcUserMemoryRead(PATTERN_L_RTC_LOC, &p_L, sizeof(p_L));
-  Serial.printf("\nPattern H: %d", p_H);
-  Serial.printf("\tPattern L: %d\n", p_L);
-  if(p_H != 0x6666 && p_L != 0x9420){ // Pattern is invalid
+
+  // Viz
+  #if VERBOSE
+    Serial.printf("\nRTC Pattern H: %d, Ours: %d", p_H, 0x6666);
+    Serial.printf("\nRTC Pattern L: %d, Ours: %d\n", p_L, 0x9420);
+  #endif
+  
+  if(p_H != 0x6666 || p_L != 0x9420){ // Pattern is invalid
+
+    // Viz
+    #if VERBOSE
+      Serial.println("Resetting RTC patterns");
+    #endif
+    
     // Update the pattern to indicate that we indeed modified it
     p_H = 0x6666; 
     p_L = 0x9420;
@@ -184,34 +226,44 @@ void init_sensors(){
   ;
 }
 
-float* read_sensors(){
+float read_sensors(float **output){
   uint32_t prev_t = 0, prev_s = 0, input_t, input_s;
-  
-  input_s = 0.03;
-  input_t = 35;
-  
-  
-  // Read the sensor values from the two sensors
-  /*
-   * INSERT CODE HERE
-   */
+
+  #if SIMULATE_RANDOM // Simulate sensor's readings with a random number generator
+    input_t = random(0, 80);
+    input_s = random(0, 25);
+  #else // Read the sensor values from the two sensors
+    /*
+     * INSERT CODE HERE
+     */
+  #endif
   
   // Read previous values of the Temp and Smoke variables from RTC memory
   ESP.rtcUserMemoryRead(PREV_T_RTC_LOC, &prev_t, sizeof(prev_t));
   ESP.rtcUserMemoryRead(PREV_S_RTC_LOC, &prev_s, sizeof(prev_s));
 
+  // Allocate memory for the fuzzy input data
+  *output = (float*)malloc(4*sizeof(float));
+  (*output)[0] = (float)input_t;
+  (*output)[1] = (float)input_s;
+  (*output)[2] = (float)input_t - (float)prev_t;
+  (*output)[3] = (float)input_s - (float)prev_s;
+
   // Update the previous values of the Temp and Smoke varibales in RTC memory
   ESP.rtcUserMemoryWrite(PREV_T_RTC_LOC, &input_t, sizeof(input_t));
   ESP.rtcUserMemoryWrite(PREV_S_RTC_LOC, &input_s, sizeof(input_s));
-  
-  // Temp, Smoke, Delta_Temp, Delta_Smoke
-  float output[4] = {input_t, input_s, (input_t - prev_t), (input_s - prev_s)};
-  return output;
 }
 
 
 void communicate_(byte msg_type){
+  
   MQTT_setup();
+
+  // Viz
+  #if VERBOSE 
+    Serial.println("Connecting to WiFi...");
+  #endif
+  
   wake_wifi_up();
   char buffer[JSON_BUFFER_SIZE];
   
@@ -233,14 +285,16 @@ void communicate_(byte msg_type){
 
   // Serialize data, connect, and send.
   serializeJson(DATA, buffer);
-  
+
+  // Viz
   #if VERBOSE
-    Serial.println("Connecting to MQTT broker");
+    Serial.println("Connecting to MQTT broker...");
   #endif
   
   MQTT_connect();
   send_data(buffer);
-  
+
+  // Viz
   #if VERBOSE
     Serial.print("Sent: ");
     Serial.println(buffer);
