@@ -69,6 +69,7 @@ float read_sensors();
 void communicate_(byte);
 void check_rtc_mem_validity();
 void check_for_daily_report(byte);
+void go_to_sleep(unsigned long);
 
 // Global variables
 byte device_state = START;
@@ -76,7 +77,6 @@ uint32_t wake_counter;
 
 void setup(){
   off_unnecessary(); // Turn off Wi-Fi
-  
   
   #if VERBOSE
     // Set the Serial output
@@ -127,47 +127,37 @@ void loop() {
     }
     
     case NORMAL:{
-
       check_for_daily_report(NORMAL_COUNTER);
-
-      #if VERBOSE
-        Serial.println("Going to sleep...");
-      #endif
-      
-      // WAKE_RF_DISABLED to keep the WiFi radio disabled when we wake up
-      ESP.deepSleep(NORMAL_SLEEP, WAKE_RF_DISABLED);
+      go_to_sleep(NORMAL_SLEEP);
       break;
     }
     
     case STANDBY:{
-
       communicate_(STANDBY_MSG);
       check_for_daily_report(STANDBY_COUNTER);
-      
-      #if VERBOSE
-        Serial.println("Going to sleep...");
-      #endif
-      
-      // WAKE_RF_DISABLED to keep the WiFi radio disabled when we wake up
-      ESP.deepSleep(STANDBY_SLEEP, WAKE_RF_DISABLED);
+      go_to_sleep(STANDBY_SLEEP);
       break;
     }
     
     case ALERT:{
-
       communicate_(ALERT_MSG);
-      
-      #if VERBOSE
-        Serial.println("Going to sleep...");
-      #endif
-      
-      // WAKE_RF_DISABLED to keep the WiFi radio disabled when we wake up
-      ESP.deepSleep(ALERT_SLEEP, WAKE_RF_DISABLED);
+      go_to_sleep(ALERT_SLEEP);
       break;
     }
-    
     default: break;
   }
+}
+
+void go_to_sleep(unsigned long time_to_sleep){
+  
+  off_unnecessary();
+  
+  #if VERBOSE
+    Serial.println("Going to sleep...");
+  #endif
+    
+  // WAKE_RF_DISABLED to keep the WiFi radio disabled when we wake up
+  ESP.deepSleepInstant(time_to_sleep, WAKE_RF_DISABLED);
 }
 
 void check_for_daily_report(byte period){
