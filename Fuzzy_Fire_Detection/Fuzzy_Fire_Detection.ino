@@ -69,7 +69,8 @@ void go_to_sleep(unsigned long);
 // Global variables
 byte device_state = START;
 byte end_hour = 0;
-uint32_t wake_counter;
+uint32_t wake_counter; // This is required to be uint32_t by the RTC memory
+                       // even though we don't need a 32 bits interger
 uint32_t hour_counter; 
 float* fuzzy_inputs;
 
@@ -178,6 +179,7 @@ void check_for_daily_report(byte period){
   // Viz
   #if VERBOSE
     Serial.printf("Wake counter: %d\n", wake_counter);
+    Serial.printf("Hour n°%d of the day\n", hour_counter);
   #endif
 
   // If we've finished an hour, we need this flag for when we write the temp to the LOG
@@ -279,7 +281,7 @@ void communicate_(byte msg_type){
   
   wake_wifi_up();
 
-  char buffer[JSON_BUFFER_SIZE];
+  char* buffer;
   switch(msg_type){
     case DAILY_MSG:{    // Fill daily msg data
       read_day(buffer);
@@ -309,5 +311,6 @@ void communicate_(byte msg_type){
     Serial.print("Sent: ");
     Serial.println(buffer);
   #endif
- 
+  
+  free(buffer);
 }
