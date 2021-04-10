@@ -7,12 +7,14 @@ void write_temp(float temp, bool hour_){
   
   // The '#' char indicates an end of hour. We'll need that in the read_day()
   // function for the daily-report's data parsing
-  if(hour_) file.print(String(temp)+",#");
-  else      file.print(String(temp)+",");
+  if(hour_)file.print(String(temp)+",#");
+  
+  // The ',' char indicates an end of Temp value
+  else file.print(String(temp)+",");
   file.close();
 }
 
-void read_day(const char* buffer_){
+void read_day(char* buffer_){
   StaticJsonDocument<JSON_BUFFER_SIZE> DATA;  // Json file that'll contain all data, and then be sent via mqtt
   
   File file = LittleFS.open(FILE_PATH, "r");
@@ -60,7 +62,9 @@ void read_day(const char* buffer_){
     }
   }
   file.close();
-  //serializeJson(DATA, buffer_); // There's a problem with this, fix it! It's with the buffer !!!
+  char buff[JSON_BUFFER_SIZE]; // Create data container
+  serializeJson(DATA, buff);   // Fill the local container with collected data
+  strcpy(buffer_, buff);       // Fill the global container
 }
 
 void remove_file(){
