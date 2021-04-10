@@ -9,10 +9,9 @@
  * Written by: Radhi SGHAIER, https://github.com/Rad-hi 
  */
 
+#include"Data_Logger.h"
 #include"Fuzzy_system.h"
 #include"WIFI.h"
-
-#include <ArduinoJson.h>
 
 // Turn ON/OFF debug printing (debugging section won't be included in compiled code when VERBOSE is false) 
 #define VERBOSE                 true
@@ -42,26 +41,22 @@
 #define NORMAL_COUNTER          15
 #define STANDBY_COUNTER         10
 
-// RTC Memory locations
+// RTC Memory locations (It's divided into chunks of 4 bytes)
 #define PATTERN_H_RTC_LOC       0
 #define PATTERN_L_RTC_LOC       4
 #define PREV_T_RTC_LOC          8
 #define PREV_S_RTC_LOC          12
 #define WAKE_COUNTER            16
+#define HOUR_COUNTER            20
 
 // 
 #define SEC_IN_DAY              60 //86400
+#define SEC_IN_HOUR             3600
 
 // Message types
 #define DAILY_MSG               0
 #define STANDBY_MSG             1
 #define ALERT_MSG               2
-
-// Message buffer
-#define JSON_BUFFER_SIZE        128         // Calculate the correct size using:
-                                            // https://arduinojson.org/v5/assistant/
-                                             
-StaticJsonDocument<JSON_BUFFER_SIZE> DATA;  // Json file that'll contain all data, and then be sent via mqtt
 
 // Functions' prototypes
 void init_sensors();
@@ -73,10 +68,17 @@ void go_to_sleep(unsigned long);
 
 // Global variables
 byte device_state = START;
+byte end_hour = 0;
 uint32_t wake_counter;
+uint32_t hour_counter; 
+float* fuzzy_inputs;
 
 void setup(){
-  off_unnecessary(); // Turn off Wi-Fi
+  // Turn off Wi-Fi
+  off_unnecessary(); 
+  
+  // Mount the file-system
+  LittleFS.begin();
   
   #if VERBOSE
     // Set the Serial output
@@ -96,7 +98,6 @@ void loop() {
       check_rtc_mem_validity();
       init_sensors();    // Initialize sensors
       setup_fuzzy();     // Initialize the fuzzy system
-      float* fuzzy_inputs;
       read_sensors(&fuzzy_inputs);
       set_fuzzy_inputs(*fuzzy_inputs, *(fuzzy_inputs + 1), *(fuzzy_inputs + 2), *(fuzzy_inputs + 3)); //Set fuzzy-system's inputs
       fuzzify_system();  // Fuzzify inputs
@@ -109,9 +110,6 @@ void loop() {
         Serial.printf("Output: \nFire Confidence: Low-> %f, Med-> %f, High-> %f\n", fc.fire_low, fc.fire_med, fc.fire_high);
         Serial.printf("Result:\nFire Confidence: %f\n", fire_percentage);
       #endif
-      
-      // Free allocated memory for the fuzzy inputs
-      free(fuzzy_inputs);
       
       // Decide the next action
       if(fire_percentage - ALERT_THRESHHOLD > 0){ // fire_percentage > 60.0
@@ -128,6 +126,8 @@ void loop() {
     
     case NORMAL:{
       check_for_daily_report(NORMAL_COUNTER);
+      // Write temperature value to the LOG
+      write_temp(*fuzzy_inputs, end_hour);
       go_to_sleep(NORMAL_SLEEP);
       break;
     }
@@ -135,6 +135,8 @@ void loop() {
     case STANDBY:{
       communicate_(STANDBY_MSG);
       check_for_daily_report(STANDBY_COUNTER);
+      // Write temperature value to the LOG
+      write_temp(*fuzzy_inputs, end_hour);
       go_to_sleep(STANDBY_SLEEP);
       break;
     }
@@ -149,7 +151,14 @@ void loop() {
 }
 
 void go_to_sleep(unsigned long time_to_sleep){
+
+  // Free allocated memory for the fuzzy inputs
+  free(fuzzy_inputs);
+
+  // Unmount the file-system
+  LittleFS.end();
   
+  // Off WiFi
   off_unnecessary();
   
   #if VERBOSE
@@ -163,24 +172,37 @@ void go_to_sleep(unsigned long time_to_sleep){
 void check_for_daily_report(byte period){
   // Read how many seconds we've been asleep for, since the last 24h-report
   ESP.rtcUserMemoryRead(WAKE_COUNTER, &wake_counter, sizeof(wake_counter));
+  // Read which hour of the day we're in
+  ESP.rtcUserMemoryRead(HOUR_COUNTER, &hour_counter, sizeof(hour_counter));
 
   // Viz
   #if VERBOSE
     Serial.printf("Wake counter: %d\n", wake_counter);
   #endif
-  
+
+  // If we've finished an hour, we need this flag for when we write the temp to the LOG
+  // (checking with a tolerance of 1 minute)
+  if((wake_counter - hour_counter*SEC_IN_HOUR >= 0) 
+      && (wake_counter - hour_counter*SEC_IN_HOUR <= 60)){
+        hour_counter++;
+        end_hour = 1;
+      }
+
+  // It's been a day already
   if(wake_counter >= SEC_IN_DAY){
     communicate_(DAILY_MSG);
     wake_counter = 0;
   }
   else wake_counter += period;
+  // Update the values in the RTC memory
+  ESP.rtcUserMemoryWrite(HOUR_COUNTER, &hour_counter, sizeof(hour_counter));
   ESP.rtcUserMemoryWrite(WAKE_COUNTER, &wake_counter, sizeof(wake_counter));
 }
 
 void check_rtc_mem_validity(){
   // At boot, the RTC memory will contain random values, so we need a way to check
   // If the data we're reading is valid on not (edited by us, or random), so to do that 
-  // we read the 8 first bytes, and these need to be exactly 66669420 (any specific pattern)
+  // we read the 8 first bytes, and these need to be exactly 0x66669420 (any specific pattern)
   
   uint32_t p_H = 0, p_L = 0, reset_var = 0;
   ESP.rtcUserMemoryRead(PATTERN_H_RTC_LOC, &p_H, sizeof(p_H));
@@ -208,7 +230,8 @@ void check_rtc_mem_validity(){
     // Reset all RTC memory savings that we care about their value to 0
     ESP.rtcUserMemoryWrite(PREV_T_RTC_LOC, &reset_var, sizeof(reset_var));
     ESP.rtcUserMemoryWrite(PREV_S_RTC_LOC, &reset_var, sizeof(reset_var));
-    ESP.rtcUserMemoryWrite(WAKE_COUNTER, &reset_var, sizeof(reset_var));    
+    ESP.rtcUserMemoryWrite(WAKE_COUNTER, &reset_var, sizeof(reset_var)); 
+    ESP.rtcUserMemoryWrite(HOUR_COUNTER, &reset_var, sizeof(reset_var));   
   }
 }
 
@@ -255,26 +278,23 @@ void communicate_(byte msg_type){
   #endif
   
   wake_wifi_up();
+
   char buffer[JSON_BUFFER_SIZE];
-  
   switch(msg_type){
     case DAILY_MSG:{    // Fill daily msg data
-      DATA["MSG"] = "Normal"; // Message tag contains N (Normal) indicating the node is still alive   
+      read_day(buffer);
       break;
     }
     case STANDBY_MSG:{  // Fill satndby msg data
-      DATA["MSG"] = "Standby"; // Message tag contains S (Standby) indicating that more attention is required
+      strcpy(buffer, "{\"Msg\":\"Standby\"}"); // Message tag contains "Standby" indicating that more attention is required
       break;
     }
     case ALERT_MSG:{    // Fill alert data
-      DATA["MSG"] = "Alert"; // Message tag contains A (Alert) indicating a fire alert
+      strcpy(buffer, "{\"Msg\":\"Alert\"}");// Message tag contains"Alert" indicating a fire alert
       break;
     }
     default: break;
   }
-
-  // Serialize data, connect, and send.
-  serializeJson(DATA, buffer);
 
   // Viz
   #if VERBOSE

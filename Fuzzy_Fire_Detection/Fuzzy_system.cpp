@@ -15,7 +15,7 @@ FuzzySet *D_IT_Low   = new FuzzySet(-20, -20, 0, 5);
 FuzzySet *D_IT_Med   = new FuzzySet(0, 5, 5, 10);
 FuzzySet *D_IT_High  = new FuzzySet(5, 10, 20, 20);
 
-FuzzySet *IS_Low     = new FuzzySet(0, 0, 7, 15); // %7 to %25 obscurity
+FuzzySet *IS_Low     = new FuzzySet(0, 0, 7, 15); // %0 to %25 obscurity
 FuzzySet *IS_Med     = new FuzzySet(7, 15, 15, 23);
 FuzzySet *IS_High    = new FuzzySet(15, 23, 25, 25);
 
