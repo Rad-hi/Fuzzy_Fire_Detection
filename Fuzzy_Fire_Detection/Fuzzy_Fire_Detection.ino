@@ -4,7 +4,8 @@
  * This file requires a collection of header files to run properly.
  * Header files: {Fuzzy_system.h(Fuzzy_system.cpp),
  *                WIFI.h(WIFI.cpp), 
- *                MQTT.h(MQTT.cpp)}
+ *                MQTT.h(MQTT.cpp),
+ *                Data_Logger.h(Data_Logger.cpp)}
  * ---
  * Written by: Radhi SGHAIER, https://github.com/Rad-hi 
  */
@@ -33,12 +34,12 @@
 #define ALERT_THRESHHOLD        60.0
 
 // Sleep times
-#define NORMAL_SLEEP            15000000UL  // 1 minute   (uSeconds) (60e6 works too)
+#define NORMAL_SLEEP            60000000UL  // 1 minute   (uSeconds) (60e6 works too)
 #define STANDBY_SLEEP           10000000UL  // 10 seconds 
 #define ALERT_SLEEP             5000000UL   // 5 seconds 
 
 // Period counters
-#define NORMAL_COUNTER          15
+#define NORMAL_COUNTER          60
 #define STANDBY_COUNTER         10
 
 // RTC Memory locations (It's divided into chunks of 4 bytes)
@@ -50,7 +51,7 @@
 #define HOUR_COUNTER            20
 
 // 
-#define SEC_IN_DAY              60 //86400
+#define SEC_IN_DAY              86400
 #define SEC_IN_HOUR             3600
 
 // Message types
@@ -184,8 +185,8 @@ void check_for_daily_report(byte period){
 
   // If we've finished an hour, we need this flag for when we write the temp to the LOG
   // (checking with a tolerance of 1 minute)
-  if((wake_counter - hour_counter*SEC_IN_HOUR >= 0) 
-      && (wake_counter - hour_counter*SEC_IN_HOUR <= 60)){
+  if((wake_counter - (hour_counter+1)*SEC_IN_HOUR >= 0) 
+      && (wake_counter - (hour_counter+1)*SEC_IN_HOUR <= 60)){
         hour_counter++;
         end_hour = 1;
       }
@@ -281,7 +282,7 @@ void communicate_(byte msg_type){
   
   wake_wifi_up();
 
-  char* buffer;
+  char* buffer = (char*)malloc(sizeof(char)*JSON_BUFFER_SIZE); // Allocate memory for the buffer
   switch(msg_type){
     case DAILY_MSG:{    // Fill daily msg data
       read_day(buffer);
@@ -305,12 +306,13 @@ void communicate_(byte msg_type){
   
   MQTT_connect();
   send_data(buffer);
-
+  
   // Viz
   #if VERBOSE
     Serial.print("Sent: ");
     Serial.println(buffer);
   #endif
-  
-  free(buffer);
+
+  // Garbage collection
+  free(buffer); 
 }

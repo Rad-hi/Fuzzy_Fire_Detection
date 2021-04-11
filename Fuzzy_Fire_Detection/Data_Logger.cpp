@@ -17,14 +17,17 @@ void write_temp(float temp, bool hour_){
   file.close();
 }
 
-void read_day(char* buffer_){
-  StaticJsonDocument<JSON_BUFFER_SIZE> DATA;  // Json file that'll contain all data, and then be sent via mqtt
+void read_day(char* buff){
+  DynamicJsonDocument DATA(JSON_BUFFER_SIZE);   // Data is stored on the heap!
+  //StaticJsonDocument<JSON_BUFFER_SIZE> DATA;  // Data is stored on the stack!
   
   File file = LittleFS.open(FILE_PATH, "r");
   yield();
 
   // Failed to open file
-  if(!file) return;
+  if(!file){
+    ;
+  }
 
   float max_ = 0.0001, min_ = 1000, mean_ = 0;  
   byte hour_ = 0;
@@ -51,10 +54,11 @@ void read_day(char* buffer_){
         mean_ /= readings;
 
         // Fill data to be sent
-        String tag = "H"+String(hour_);
-        DATA[tag] = max_;
-        DATA[tag] = min_;
-        DATA[tag] = mean_;
+        String tag = "H"+String(hour_);  
+              
+        DATA[tag]["mx"] = max_;
+        DATA[tag]["mi"] = min_;
+        DATA[tag]["mn"] = mean_;
         
         // Reset all values
         max_ = 0.0001;
@@ -68,10 +72,15 @@ void read_day(char* buffer_){
     }
   }
   file.close();
-  char buff[JSON_BUFFER_SIZE]; // Create data container
-  serializeJson(DATA, buff);   // Fill the local container with collected data
-  strcpy(buffer_, buff);       // Fill the global container
-  remove_file(); // Remove the file after we're done with it
+  
+  //
+  char buff_[JSON_BUFFER_SIZE]; // Create data container
+  serializeJson(DATA, buff_);   // Fill the local container with collected data
+  strcpy(buff, buff_);
+
+  // Remove the file after we're done with it
+  remove_file(); 
+
 }
 
 void remove_file(){
