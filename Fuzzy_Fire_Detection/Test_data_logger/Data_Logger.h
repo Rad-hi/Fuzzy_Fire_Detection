@@ -12,7 +12,7 @@
                                         // https://arduinojson.org/v5/assistant/
                                                
   void write_temp(float, bool);
-  char* read_day();
+  void read_day(char*);
   void remove_file();
 
 #endif
