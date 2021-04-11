@@ -79,10 +79,9 @@ void read_day(char* buff){
   serializeJson(DATA, buff_);   // Fill the local container with collected data
 
   strcpy(buff, buff_);
-  //Serial.println(buff);
-  //remove_file(); // Remove the file after we're done with it
+  
+  remove_file(); // Remove the file after we're done with it
 
-  //return buff;
 }
 
 void remove_file(){

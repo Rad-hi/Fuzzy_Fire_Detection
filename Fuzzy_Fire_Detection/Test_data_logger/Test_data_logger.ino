@@ -23,7 +23,6 @@ void setup() {
 // I'm simulating a data logging of a temperature value that ranges between:
 // Once every minute -to- once every 10 seconds (depending on the operation mode)
 
-/*
 
   //LittleFS.format(); // This deletes the files (formats the flash)
   
@@ -31,8 +30,8 @@ void setup() {
 
   // Writing
   Serial.println("\nWriting to the FLash memory");
-  for (int i = 0; i < 24; i++) { // The 24h of the day
-    byte num_readings = random(0, 300); // randomly choosing the number of points to best
+  for (int i = 0; i < 2; i++) { // The 24h of the day
+    byte num_readings = random(0, 3); // randomly choosing the number of points to best
                                         // test the parser since the real thing will need
                                         // to parse non consisting intervals
     while (num_readings--) {
@@ -46,15 +45,11 @@ void setup() {
 
   Serial.printf("Done writing. Wrote %d values!\n", num_lines);
 
-*/
 
-
-// readFile("/Temp_Log.txt"); // Read file's content
-
-
+  readFile("/Temp_Log.txt"); // Read file's content
 
   // Reading
-  Serial.println("Going to read the file's content");
+  Serial.println("\nGoing to read the file's content");
   
   char* buffer = (char*)malloc(sizeof(char)*JSON_BUFFER_SIZE); // Allocate memory for the buffer
   
