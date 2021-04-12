@@ -272,15 +272,6 @@ float read_sensors(float **output){
 
 
 void communicate_(byte msg_type){
-  
-  MQTT_setup();
-
-  // Viz
-  #if VERBOSE 
-    Serial.println("Connecting to WiFi...");
-  #endif
-  
-  wake_wifi_up();
 
   char* buffer = (char*)malloc(sizeof(char)*JSON_BUFFER_SIZE); // Allocate memory for the buffer
   switch(msg_type){
@@ -298,6 +289,15 @@ void communicate_(byte msg_type){
     }
     default: break;
   }
+
+  MQTT_setup();
+
+  // Viz
+  #if VERBOSE 
+    Serial.println("Connecting to WiFi...");
+  #endif
+  
+  wake_wifi_up();
 
   // Viz
   #if VERBOSE
