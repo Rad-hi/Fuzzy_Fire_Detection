@@ -182,8 +182,8 @@ void check_for_daily_report(byte period){
 
   // If we've finished an hour, we need this flag for when we write the temp to the LOG
   // (checking with a tolerance of 1 minute)
-  if((wake_counter - (hour_counter+1)*SEC_IN_HOUR >= 0) 
-      && (wake_counter - (hour_counter+1)*SEC_IN_HOUR <= 60)){
+  uint32_t hours = (hour_counter+1)*SEC_IN_HOUR;
+  if((wake_counter - hours >= 0) && (wake_counter - hours <= 60)){
         // hour_counter goes from 0 to 23
         if(++hour_counter == 24)hour_counter = 0;
         end_hour = 1;
