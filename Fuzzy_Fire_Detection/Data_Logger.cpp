@@ -26,7 +26,7 @@ void read_day(char* buff){
 
   // Failed to open file
   if(!file){
-    ;
+    ; // Dunno what's best thing to do yet
   }
 
   float max_ = 0.0001, min_ = 1000, mean_ = 0;  
@@ -79,10 +79,10 @@ void read_day(char* buff){
   strcpy(buff, buff_);
 
   // Remove the file after we're done with it
-  remove_file(); 
+  remove_file(FILE_PATH); 
 
 }
 
-void remove_file(){
-  LittleFS.remove(FILE_PATH);
+void remove_file(const char* path){
+  LittleFS.remove(path);
 }
