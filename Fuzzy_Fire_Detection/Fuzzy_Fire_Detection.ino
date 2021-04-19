@@ -43,12 +43,11 @@
 #define STANDBY_COUNTER         10
 
 // RTC Memory locations (It's divided into chunks of 4 bytes)
-#define PATTERN_H_RTC_LOC       0
-#define PATTERN_L_RTC_LOC       4
-#define PREV_T_RTC_LOC          8
-#define PREV_S_RTC_LOC          12
-#define WAKE_COUNTER            16
-#define HOUR_COUNTER            20
+#define PATTERN_RTC_LOC         0
+#define PREV_T_RTC_LOC          4
+#define PREV_S_RTC_LOC          8
+#define WAKE_COUNTER_RTC_LOC    12
+#define HOUR_COUNTER_RTC_LOC    16
 
 // 
 #define SEC_IN_DAY              86400
@@ -83,7 +82,6 @@ void setup(){
   LittleFS.begin();
   
   #if VERBOSE
-    // Set the Serial output
     Serial.begin(SERIAL_MON_BAUD_RATE);
   #endif
 
@@ -98,12 +96,12 @@ void loop() {
     
     case START:{
       check_rtc_mem_validity();
-      init_sensors();    // Initialize sensors
-      setup_fuzzy();     // Initialize the fuzzy system
+      init_sensors();    
+      setup_fuzzy();     
       read_sensors(&fuzzy_inputs);
       set_fuzzy_inputs(*fuzzy_inputs, *(fuzzy_inputs + 1), *(fuzzy_inputs + 2), *(fuzzy_inputs + 3)); //Set fuzzy-system's inputs
-      fuzzify_system();  // Fuzzify inputs
-      float fire_percentage = defuzzify_system(); // Defuzzify and get final result
+      fuzzify_system();  
+      float fire_percentage = defuzzify_system();
       
       // Viz
       #if VERBOSE
@@ -154,7 +152,6 @@ void loop() {
 
 void go_to_sleep(unsigned long time_to_sleep){
 
-  // Free allocated memory for the fuzzy inputs
   free(fuzzy_inputs);
 
   // Unmount the file-system
@@ -173,9 +170,9 @@ void go_to_sleep(unsigned long time_to_sleep){
 
 void check_for_daily_report(byte period){
   // Read how many seconds we've been asleep for, since the last 24h-report
-  ESP.rtcUserMemoryRead(WAKE_COUNTER, &wake_counter, sizeof(wake_counter));
+  ESP.rtcUserMemoryRead(WAKE_COUNTER_RTC_LOC, &wake_counter, sizeof(wake_counter));
   // Read which hour of the day we're in
-  ESP.rtcUserMemoryRead(HOUR_COUNTER, &hour_counter, sizeof(hour_counter));
+  ESP.rtcUserMemoryRead(HOUR_COUNTER_RTC_LOC, &hour_counter, sizeof(hour_counter));
 
   // Viz
   #if VERBOSE
@@ -187,7 +184,8 @@ void check_for_daily_report(byte period){
   // (checking with a tolerance of 1 minute)
   if((wake_counter - (hour_counter+1)*SEC_IN_HOUR >= 0) 
       && (wake_counter - (hour_counter+1)*SEC_IN_HOUR <= 60)){
-        hour_counter++;
+        // hour_counter goes from 0 to 23
+        if(++hour_counter == 24)hour_counter = 0;
         end_hour = 1;
       }
 
@@ -198,8 +196,8 @@ void check_for_daily_report(byte period){
   }
   else wake_counter += period;
   // Update the values in the RTC memory
-  ESP.rtcUserMemoryWrite(HOUR_COUNTER, &hour_counter, sizeof(hour_counter));
-  ESP.rtcUserMemoryWrite(WAKE_COUNTER, &wake_counter, sizeof(wake_counter));
+  ESP.rtcUserMemoryWrite(HOUR_COUNTER_RTC_LOC, &hour_counter, sizeof(hour_counter));
+  ESP.rtcUserMemoryWrite(WAKE_COUNTER_RTC_LOC, &wake_counter, sizeof(wake_counter));
 }
 
 void check_rtc_mem_validity(){
@@ -207,17 +205,15 @@ void check_rtc_mem_validity(){
   // If the data we're reading is valid on not (edited by us, or random), so to do that 
   // we read the 8 first bytes, and these need to be exactly 0x66669420 (any specific pattern)
   
-  uint32_t p_H = 0, p_L = 0, reset_var = 0;
-  ESP.rtcUserMemoryRead(PATTERN_H_RTC_LOC, &p_H, sizeof(p_H));
-  ESP.rtcUserMemoryRead(PATTERN_L_RTC_LOC, &p_L, sizeof(p_L));
+  uint32_t pattern = 0, reset_var = 0;
+  ESP.rtcUserMemoryRead(PATTERN_RTC_LOC, &pattern, sizeof(pattern));
 
   // Viz
   #if VERBOSE
-    Serial.printf("\nRTC Pattern H: %d, Ours: %d", p_H, 0x6666);
-    Serial.printf("\nRTC Pattern L: %d, Ours: %d\n", p_L, 0x9420);
+    Serial.printf("\nRTC Pattern: %d, Ours: %d", pattern, 0x66669420);
   #endif
   
-  if(p_H != 0x6666 || p_L != 0x9420){ // Pattern is invalid
+  if(pattern != 0x66669420){ // Pattern is invalid
 
     // Viz
     #if VERBOSE
@@ -225,16 +221,14 @@ void check_rtc_mem_validity(){
     #endif
     
     // Update the pattern to indicate that we indeed modified it
-    p_H = 0x6666; 
-    p_L = 0x9420;
-    ESP.rtcUserMemoryWrite(PATTERN_H_RTC_LOC, &p_H, sizeof(p_H));
-    ESP.rtcUserMemoryWrite(PATTERN_L_RTC_LOC, &p_L, sizeof(p_L));
+    pattern = 0x66669420; 
+    ESP.rtcUserMemoryWrite(PATTERN_RTC_LOC, &pattern, sizeof(pattern));
 
     // Reset all RTC memory savings that we care about their value to 0
     ESP.rtcUserMemoryWrite(PREV_T_RTC_LOC, &reset_var, sizeof(reset_var));
     ESP.rtcUserMemoryWrite(PREV_S_RTC_LOC, &reset_var, sizeof(reset_var));
-    ESP.rtcUserMemoryWrite(WAKE_COUNTER, &reset_var, sizeof(reset_var)); 
-    ESP.rtcUserMemoryWrite(HOUR_COUNTER, &reset_var, sizeof(reset_var));   
+    ESP.rtcUserMemoryWrite(WAKE_COUNTER_RTC_LOC, &reset_var, sizeof(reset_var)); 
+    ESP.rtcUserMemoryWrite(HOUR_COUNTER_RTC_LOC, &reset_var, sizeof(reset_var));   
   }
 }
 
