@@ -203,7 +203,7 @@ void check_for_daily_report(byte period){
 void check_rtc_mem_validity(){
   // At boot, the RTC memory will contain random values, so we need a way to check
   // If the data we're reading is valid on not (edited by us, or random), so to do that 
-  // we read the 8 first bytes, and these need to be exactly 0x66669420 (any specific pattern)
+  // we read the 4 first bytes, and these need to be exactly 0x66669420 (any specific pattern)
   
   uint32_t pattern = 0, reset_var = 0;
   ESP.rtcUserMemoryRead(PATTERN_RTC_LOC, &pattern, sizeof(pattern));
