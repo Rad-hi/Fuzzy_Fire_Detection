@@ -1,6 +1,6 @@
 #include"MQTT.h"
 
-WiFiClient client; // Used in MQTT.h 
+WiFiClient client;
 // Create mqtt port (client might be a wifi or gprs client)
 PubSubClient  mqtt(client);
 

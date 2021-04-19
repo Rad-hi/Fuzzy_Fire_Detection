@@ -31,7 +31,8 @@ void wake_wifi_up(){
   WiFi.begin(WLAN_SSID, WLAN_PASSWD);
   
   unsigned long wifi_start = millis();
-  
+
+  // Wait for WiFi connection to be established
   while(WiFi.status() != WL_CONNECTED && millis() - wifi_start < WIFI_TIMEOUT){
     yield();
   }
