@@ -29,6 +29,8 @@ void read_day(char* buff){
     ; // Dunno what's best thing to do yet
   }
 
+  DATA["Msg"] = "Daily";
+  
   float max_ = 0.0001, min_ = 1000, mean_ = 0;  
   byte hour_ = 0;
   byte readings = 0;
