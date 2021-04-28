@@ -49,6 +49,10 @@
 #define WAKE_COUNTER_RTC_LOC    12
 #define HOUR_COUNTER_RTC_LOC    16
 
+// The pattern to be written at the beginning of RTC memory to insure its data validity
+// (could be any 4 bytes pattenrn)
+#define RTC_VAL_PATTERN         0x66669420
+
 // 
 #define SEC_IN_DAY              86400
 #define SEC_IN_HOUR             3600
@@ -68,11 +72,13 @@ void go_to_sleep(unsigned long);
 
 // Global variables
 byte device_state = START;
-byte end_hour = 0;
-uint32_t wake_counter; // This is required to be uint32_t by the RTC memory
-                       // even though we don't need a 32 bits interger
-uint32_t hour_counter; 
+byte end_hour = 0; // This flag is set once on each end of hour
+
 float* fuzzy_inputs;
+
+// These are required to be uint32_t by the RTC memory even though we don't need a 32 bits interger
+uint32_t wake_counter; // Counts how many seconds have passed since the last daily report
+uint32_t hour_counter; // Keeps track of which hour of the day we're in {0 .. 23}
 
 void setup(){
   // Turn off Wi-Fi
@@ -100,6 +106,8 @@ void loop() {
       setup_fuzzy();     
       read_sensors(&fuzzy_inputs);
       set_fuzzy_inputs(*fuzzy_inputs, *(fuzzy_inputs + 1), *(fuzzy_inputs + 2), *(fuzzy_inputs + 3)); //Set fuzzy-system's inputs
+      
+      // Fuzzy inference
       fuzzify_system();  
       float fire_percentage = defuzzify_system();
       
@@ -171,7 +179,7 @@ void go_to_sleep(unsigned long time_to_sleep){
 void check_for_daily_report(byte period){
   // Read how many seconds we've been asleep for, since the last 24h-report
   ESP.rtcUserMemoryRead(WAKE_COUNTER_RTC_LOC, &wake_counter, sizeof(wake_counter));
-  // Read which hour of the day we're in
+  // Read which hour of the day we're in (in seconds)
   ESP.rtcUserMemoryRead(HOUR_COUNTER_RTC_LOC, &hour_counter, sizeof(hour_counter));
 
   // Viz
@@ -180,7 +188,7 @@ void check_for_daily_report(byte period){
     Serial.printf("Hour n°%d of the day\n", hour_counter);
   #endif
 
-  // If we've finished an hour, we need this flag for when we write the temp to the LOG
+  // If we've finished an hour, we need this flag (end_hour) for when we write the temp to the LOG
   // (checking with a tolerance of 1 minute)
   uint32_t hours = (hour_counter+1)*SEC_IN_HOUR;
   if((wake_counter - hours >= 0) && (wake_counter - hours <= 60)){
@@ -200,20 +208,20 @@ void check_for_daily_report(byte period){
   ESP.rtcUserMemoryWrite(WAKE_COUNTER_RTC_LOC, &wake_counter, sizeof(wake_counter));
 }
 
+// At boot, the RTC memory will contain random values, so we need a way to check
+// If the data we're reading is valid on not (edited by us, or random), so to do that 
+// we read the 4 first bytes, and these need to be exactly RTC_VAL_PATTERN == 0x66669420 
+// (any specific pattern)
 void check_rtc_mem_validity(){
-  // At boot, the RTC memory will contain random values, so we need a way to check
-  // If the data we're reading is valid on not (edited by us, or random), so to do that 
-  // we read the 4 first bytes, and these need to be exactly 0x66669420 (any specific pattern)
-  
   uint32_t pattern = 0, reset_var = 0;
   ESP.rtcUserMemoryRead(PATTERN_RTC_LOC, &pattern, sizeof(pattern));
 
   // Viz
   #if VERBOSE
-    Serial.printf("\nRTC Pattern: %d, Ours: %d", pattern, 0x66669420);
+    Serial.printf("\nRTC Pattern: %d, Ours: %d", pattern, RTC_VAL_PATTERN);
   #endif
   
-  if(pattern != 0x66669420){ // Pattern is invalid
+  if(pattern != RTC_VAL_PATTERN){ // Pattern is non-valid
 
     // Viz
     #if VERBOSE
@@ -221,7 +229,7 @@ void check_rtc_mem_validity(){
     #endif
     
     // Update the pattern to indicate that we indeed modified it
-    pattern = 0x66669420; 
+    pattern = RTC_VAL_PATTERN; 
     ESP.rtcUserMemoryWrite(PATTERN_RTC_LOC, &pattern, sizeof(pattern));
 
     // Reset all RTC memory savings that we care about their value to 0
