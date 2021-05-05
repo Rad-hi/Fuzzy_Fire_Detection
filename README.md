@@ -14,7 +14,9 @@ The implemented fuzzy system is studied and designed in this paper: https://doi.
 
 We added a temperature logging functionality that provides a daily temperatue report based on an edge computing technique in order to save energy furthermore. The temperature data that's gathered during the day is parsed and turned into a per-hour based report where each day the **max**, **min**, and **mean** temperatures of each hour are computed and sent in the format: 
 
+```
 {H0:[mx=MAX_VALUE,mi=MIN_VALUE,mn=MEAN_VALUE],H1, .. ,H23:[mx=MAX_VALUE,mi=MIN_VALUE,mn=MEAN_VALUE]}
+```
 
 ## Initial code structure
 
