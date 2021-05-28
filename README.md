@@ -10,7 +10,7 @@ We wanted to create a real-time fire propagation tracking system that would help
 
 Now as we finished the end node, we noticed that it could be a standalone fire detection IoT node that, with minimal configurations, could be employed anywhere. 
 
-The implemented fuzzy system is studied and designed in this paper: https://doi.org/10.1016/j.adhoc.2011.06.008, I just understood the system and implemented it! **I claim no ownership over the actual design of the system, neither do I guarantee the effictiveness of my implemented solution**. 
+The implemented fuzzy system is studied and designed in this paper: https://doi.org/10.1016/j.adhoc.2011.06.008, we just understood the system and implemented it! **We claim no ownership over the actual design of the system, neither do we guarantee the effictiveness of our implemented solution**. 
 
 We added a temperature logging functionality that provides a daily temperatue report based on an edge computing technique in order to save energy furthermore. The temperature data that's gathered during the day is parsed and turned into a per-hour based report where each day the **max**, **min**, and **mean** temperatures of each hour are computed and sent in the format: 
 
